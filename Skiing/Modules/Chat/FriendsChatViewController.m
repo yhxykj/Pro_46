@@ -9,9 +9,11 @@
 #import "FriendRequestViewController.h"
 #import "EmptyStateView.h"
 #import "DesignTokens.h"
+#import "FriendshipStore.h"
 
 static CGFloat const kFriendsChatSidePadding = 22.0;
 static NSString * const kFriendsChatCellIdentifier = @"FriendsChatCell";
+static NSString * const kFriendChatMessagesDefaultsPrefix = @"kFriendChatMessagesDefaultsPrefix.";
 
 @interface FriendsChatCell : UITableViewCell
 - (void)configureWithName:(NSString *)name message:(NSString *)message time:(NSString *)time avatarName:(NSString *)avatarName;
@@ -148,6 +150,7 @@ static NSString * const kFriendsChatCellIdentifier = @"FriendsChatCell";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES animated:NO];
+    [self reloadFriendChatItems];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -222,9 +225,9 @@ static NSString * const kFriendsChatCellIdentifier = @"FriendsChatCell";
 
     [NSLayoutConstraint activateConstraints:@[
         [titleImageView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kFriendsChatSidePadding],
-        [titleImageView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:40.0],
-        [titleImageView.widthAnchor constraintEqualToConstant:190.0],
-        [titleImageView.heightAnchor constraintEqualToConstant:18.0],
+        [titleImageView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:12],
+        [titleImageView.widthAnchor constraintEqualToConstant:192.0],
+        [titleImageView.heightAnchor constraintEqualToConstant:29.0],
 
         [addFriendButton.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-24.0],
         [addFriendButton.centerYAnchor constraintEqualToAnchor:titleImageView.centerYAnchor],
@@ -238,7 +241,7 @@ static NSString * const kFriendsChatCellIdentifier = @"FriendsChatCell";
 
         [bannerImageView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kFriendsChatSidePadding],
         [bannerImageView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-kFriendsChatSidePadding],
-        [bannerImageView.topAnchor constraintEqualToAnchor:titleImageView.bottomAnchor constant:42.0],
+        [bannerImageView.topAnchor constraintEqualToAnchor:titleImageView.bottomAnchor constant:28.0],
         [bannerImageView.heightAnchor constraintEqualToAnchor:bannerImageView.widthAnchor multiplier:113.0 / 358.0],
 
         [self.tableView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
@@ -257,6 +260,118 @@ static NSString * const kFriendsChatCellIdentifier = @"FriendsChatCell";
     BOOL isEmpty = self.items.count == 0;
     self.emptyStateView.hidden = !isEmpty;
     self.tableView.hidden = isEmpty;
+}
+
+- (void)reloadFriendChatItems {
+    NSMutableArray<NSDictionary<NSString *, NSString *> *> *items = [NSMutableArray array];
+    for (NSDictionary *friend in [FriendshipStore friends]) {
+        NSDictionary<NSString *, NSString *> *item = [self chatListItemForFriend:friend];
+        if (item) {
+            [items addObject:item];
+        }
+    }
+
+    [items sortUsingComparator:^NSComparisonResult(NSDictionary<NSString *,NSString *> *first, NSDictionary<NSString *,NSString *> *second) {
+        NSTimeInterval firstTime = [first[@"timestamp"] doubleValue];
+        NSTimeInterval secondTime = [second[@"timestamp"] doubleValue];
+        if (firstTime > secondTime) return NSOrderedAscending;
+        if (firstTime < secondTime) return NSOrderedDescending;
+        return NSOrderedSame;
+    }];
+
+    self.items = items.copy;
+    [self.tableView reloadData];
+    [self updateEmptyState];
+}
+
+- (NSDictionary<NSString *, NSString *> *)chatListItemForFriend:(NSDictionary *)friend {
+    NSString *name = [self cleanString:friend[@"name"] fallback:@"Unknown"];
+    NSString *handle = [self cleanString:friend[@"handle"] fallback:@""];
+    NSString *avatar = [self cleanString:friend[@"avatar"] fallback:@"avatar_placeholder"];
+    NSArray<NSDictionary<NSString *, id> *> *messages = [self messagesForFriendName:name handle:handle avatar:avatar];
+    NSDictionary<NSString *, id> *lastMessage = messages.lastObject;
+    NSString *messageText = lastMessage[@"text"];
+    if (![messageText isKindOfClass:NSString.class] || messageText.length == 0) {
+        return nil;
+    }
+
+    NSNumber *timestamp = lastMessage[@"timestamp"];
+    NSTimeInterval timestampValue = [timestamp respondsToSelector:@selector(doubleValue)] ? timestamp.doubleValue : NSDate.date.timeIntervalSince1970;
+    return @{@"name": name,
+             @"handle": handle,
+             @"avatar": avatar,
+             @"message": messageText,
+             @"time": [self displayTimeForTimestamp:timestampValue],
+             @"timestamp": [NSString stringWithFormat:@"%.0f", timestampValue]};
+}
+
+- (NSArray<NSDictionary<NSString *, id> *> *)messagesForFriendName:(NSString *)name handle:(NSString *)handle avatar:(NSString *)avatar {
+    NSArray *storedMessages = [NSUserDefaults.standardUserDefaults objectForKey:[self messagesDefaultsKeyForName:name handle:handle avatar:avatar]];
+    if (![storedMessages isKindOfClass:NSArray.class]) {
+        return @[];
+    }
+
+    NSMutableArray<NSDictionary<NSString *, id> *> *messages = [NSMutableArray arrayWithCapacity:storedMessages.count];
+    for (id item in storedMessages) {
+        if (![item isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+
+        NSDictionary *message = (NSDictionary *)item;
+        NSString *text = message[@"text"];
+        id incomingValue = message[@"incoming"];
+        if (![text isKindOfClass:NSString.class] || text.length == 0 ||
+            ![incomingValue respondsToSelector:@selector(boolValue)]) {
+            continue;
+        }
+
+        NSMutableDictionary<NSString *, id> *cleanMessage = [@{@"text": text,
+                                                               @"incoming": @([incomingValue boolValue])} mutableCopy];
+        id timestamp = message[@"timestamp"];
+        if ([timestamp respondsToSelector:@selector(doubleValue)]) {
+            cleanMessage[@"timestamp"] = @([timestamp doubleValue]);
+        }
+        [messages addObject:cleanMessage.copy];
+    }
+
+    return messages.copy;
+}
+
+- (NSString *)messagesDefaultsKeyForName:(NSString *)name handle:(NSString *)handle avatar:(NSString *)avatar {
+    NSString *identity = handle.length > 0 ? handle : [NSString stringWithFormat:@"%@.%@", name, avatar];
+    return [kFriendChatMessagesDefaultsPrefix stringByAppendingString:[self normalizedDefaultsKeyComponentFromString:identity]];
+}
+
+- (NSString *)normalizedDefaultsKeyComponentFromString:(NSString *)string {
+    NSCharacterSet *allowedCharacters = NSCharacterSet.alphanumericCharacterSet;
+    NSMutableString *normalizedString = [NSMutableString string];
+    for (NSUInteger index = 0; index < string.length; index++) {
+        unichar character = [string characterAtIndex:index];
+        if ([allowedCharacters characterIsMember:character]) {
+            [normalizedString appendFormat:@"%C", character];
+        } else {
+            [normalizedString appendString:@"_"];
+        }
+    }
+
+    return normalizedString.length > 0 ? normalizedString : @"default";
+}
+
+- (NSString *)cleanString:(id)value fallback:(NSString *)fallback {
+    if (![value isKindOfClass:NSString.class]) {
+        return fallback;
+    }
+
+    NSString *trimmedValue = [(NSString *)value stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    return trimmedValue.length > 0 ? trimmedValue : fallback;
+}
+
+- (NSString *)displayTimeForTimestamp:(NSTimeInterval)timestamp {
+    NSDate *date = [NSDate dateWithTimeIntervalSince1970:timestamp];
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.locale = [NSLocale currentLocale];
+    formatter.dateFormat = [NSCalendar.currentCalendar isDateInToday:date] ? @"HH:mm" : @"MM/dd";
+    return [formatter stringFromDate:date];
 }
 
 #pragma mark - UITableViewDataSource
@@ -282,7 +397,11 @@ static NSString * const kFriendsChatCellIdentifier = @"FriendsChatCell";
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSDictionary<NSString *, NSString *> *item = self.items[indexPath.row];
     FriendChatViewController *chatViewController = [[FriendChatViewController alloc] init];
+    chatViewController.chatTitle = item[@"name"];
+    chatViewController.peerHandle = item[@"handle"];
+    chatViewController.peerAvatarName = item[@"avatar"];
     chatViewController.hidesBottomBarWhenPushed = YES;
     [self.navigationController pushViewController:chatViewController animated:YES];
 }

@@ -30,6 +30,7 @@
     [self setupViews];
     [self setupConstraints];
     [self setupActions];
+    [self setupDismissKeyboardGesture];
 }
 
 - (void)setupViews {
@@ -104,6 +105,12 @@
 
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapBottom:)];
     [self.bottomLabel addGestureRecognizer:tap];
+}
+
+- (void)setupDismissKeyboardGesture {
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    tap.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:tap];
 }
 
 - (void)setupConstraints {
@@ -205,6 +212,14 @@
             return;
         }
 
+        NSString *errorMessage = nil;
+        if (![UserAccountStore saveAccountWithEmail:email
+                                           password:self.passwordField.textField.text
+                                       errorMessage:&errorMessage]) {
+            [self showError:errorMessage ?: @"Unable to create account."];
+            return;
+        }
+
         CreateAccountViewController *vc = [[CreateAccountViewController alloc] init];
         vc.email = email;
         vc.password = self.passwordField.textField.text;
@@ -216,6 +231,10 @@
     if ([self.bottomLabel didTapRange:self.signInRange inGesture:gesture]) {
         [self.navigationController popViewControllerAnimated:YES];
     }
+}
+
+- (void)dismissKeyboard {
+    [self.view endEditing:YES];
 }
 
 #pragma mark - UITextFieldDelegate

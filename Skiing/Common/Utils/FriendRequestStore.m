@@ -4,6 +4,7 @@
 //
 
 #import "FriendRequestStore.h"
+#import "UserSession.h"
 
 static NSString * const kFriendRequestSentUsersDefaultsKey = @"kFriendRequestSentUsersDefaultsKey";
 static NSString * const kFriendRequestStoreFileName = @"friend_requests.json";
@@ -59,7 +60,7 @@ static NSString * const kFriendRequestStoreFileName = @"friend_requests.json";
 }
 
 + (NSArray<NSDictionary *> *)sentUsers {
-    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:kFriendRequestSentUsersDefaultsKey];
+    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:[self sentUsersDefaultsKey]];
     NSArray<NSDictionary *> *users = [self sanitizedUsersFromObject:storedUsers];
     if (users.count > 0) {
         [self persistSentUsers:users];
@@ -68,7 +69,7 @@ static NSString * const kFriendRequestStoreFileName = @"friend_requests.json";
 
     users = [self readSentUsersFromDisk];
     if (users.count > 0) {
-        [NSUserDefaults.standardUserDefaults setObject:users forKey:kFriendRequestSentUsersDefaultsKey];
+        [NSUserDefaults.standardUserDefaults setObject:users forKey:[self sentUsersDefaultsKey]];
         [NSUserDefaults.standardUserDefaults synchronize];
     }
     return users;
@@ -76,7 +77,7 @@ static NSString * const kFriendRequestStoreFileName = @"friend_requests.json";
 
 + (void)persistSentUsers:(NSArray<NSDictionary *> *)users {
     NSArray<NSDictionary *> *sanitizedUsers = [self sanitizedUsersFromObject:users];
-    [NSUserDefaults.standardUserDefaults setObject:sanitizedUsers forKey:kFriendRequestSentUsersDefaultsKey];
+    [NSUserDefaults.standardUserDefaults setObject:sanitizedUsers forKey:[self sentUsersDefaultsKey]];
     [NSUserDefaults.standardUserDefaults synchronize];
     [self writeSentUsersToDisk:sanitizedUsers];
 }
@@ -148,7 +149,30 @@ static NSString * const kFriendRequestStoreFileName = @"friend_requests.json";
     NSURL *applicationSupportURL = [NSFileManager.defaultManager URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask].firstObject;
     NSURL *directoryURL = [applicationSupportURL URLByAppendingPathComponent:@"Profile" isDirectory:YES];
     [NSFileManager.defaultManager createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:nil];
-    return [directoryURL URLByAppendingPathComponent:kFriendRequestStoreFileName];
+    return [directoryURL URLByAppendingPathComponent:[self storeFileName]];
+}
+
++ (NSString *)sentUsersDefaultsKey {
+    return [NSString stringWithFormat:@"%@.%@", kFriendRequestSentUsersDefaultsKey, [self accountSuffix]];
+}
+
++ (NSString *)storeFileName {
+    return [NSString stringWithFormat:@"%@_%@", [self accountSuffix], kFriendRequestStoreFileName];
+}
+
++ (NSString *)accountSuffix {
+    NSString *email = [[UserSession currentEmail] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString;
+    if (email.length == 0) {
+        return @"anonymous";
+    }
+
+    NSMutableString *suffix = [NSMutableString string];
+    NSCharacterSet *allowedCharacters = NSCharacterSet.alphanumericCharacterSet;
+    for (NSUInteger index = 0; index < email.length; index++) {
+        unichar character = [email characterAtIndex:index];
+        [suffix appendString:[allowedCharacters characterIsMember:character] ? [NSString stringWithFormat:@"%C", character] : @"_"];
+    }
+    return suffix.length > 0 ? suffix : @"anonymous";
 }
 
 + (NSArray<NSDictionary *> *)readSentUsersFromDisk {

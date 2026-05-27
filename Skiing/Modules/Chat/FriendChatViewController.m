@@ -8,9 +8,11 @@
 #import "CommonMoreActionSheetView.h"
 #import "DesignTokens.h"
 #import "UserModerationStore.h"
+#import "FriendshipStore.h"
 
 static CGFloat const kFriendChatSidePadding = 18.0;
 static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCell";
+static NSString * const kFriendChatMessagesDefaultsPrefix = @"kFriendChatMessagesDefaultsPrefix.";
 
 @interface FriendChatMessageCell : UITableViewCell
 - (void)configureWithText:(NSString *)text incoming:(BOOL)incoming avatarName:(NSString *)avatarName;
@@ -125,6 +127,7 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
 @property (nonatomic, strong) UIView *inputBar;
 @property (nonatomic, strong) UITextField *messageInputField;
 @property (nonatomic, strong) NSMutableArray<NSDictionary<NSString *, id> *> *messages;
+@property (nonatomic, strong) NSLayoutConstraint *inputBarBottomConstraint;
 @property (nonatomic, strong) CommonMoreActionSheetView *moreActionSheetView;
 @end
 
@@ -133,13 +136,14 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor colorWithRed:0.76 green:0.78 blue:1.0 alpha:1.0];
-    self.messages = [NSMutableArray array];
+    self.messages = [[self loadMessagesForCurrentPeer] mutableCopy];
 
     [self setupBackground];
     [self setupHeader];
     [self setupInputBar];
     [self setupVideoButton];
     [self setupMessages];
+    [self setupKeyboardHandling];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -147,9 +151,23 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
     [self.navigationController setNavigationBarHidden:YES animated:NO];
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.view endEditing:YES];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     self.backgroundGradientLayer.frame = self.view.bounds;
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [self scrollToLatestMessageIfNeededAnimated:NO];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
@@ -215,6 +233,7 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
     tableView.backgroundColor = UIColor.clearColor;
     tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     tableView.showsVerticalScrollIndicator = NO;
+    tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     tableView.dataSource = self;
     tableView.delegate = self;
@@ -240,13 +259,6 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
     inputBar.translatesAutoresizingMaskIntoConstraints = NO;
     self.inputBar = inputBar;
 
-    UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    UIImage *imageIcon = [[UIImage systemImageNamed:@"photo"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    [imageButton setImage:imageIcon forState:UIControlStateNormal];
-    imageButton.tintColor = [UIColor colorWithRed:0.58 green:0.58 blue:0.60 alpha:1.0];
-    imageButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    imageButton.translatesAutoresizingMaskIntoConstraints = NO;
-
     UITextField *textField = [[UITextField alloc] init];
     textField.backgroundColor = UIColor.clearColor;
     textField.font = [DesignFonts regular:15];
@@ -266,31 +278,66 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
     [sendButton addTarget:self action:@selector(sendCurrentMessage) forControlEvents:UIControlEventTouchUpInside];
 
     [self.view addSubview:inputBar];
-    [inputBar addSubview:imageButton];
     [inputBar addSubview:textField];
     [inputBar addSubview:sendButton];
 
+    self.inputBarBottomConstraint = [inputBar.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-10.0];
     [NSLayoutConstraint activateConstraints:@[
         [inputBar.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kFriendChatSidePadding],
         [inputBar.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-kFriendChatSidePadding],
-        [inputBar.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-42.0],
+        self.inputBarBottomConstraint,
         [inputBar.heightAnchor constraintEqualToConstant:55.0],
-
-        [imageButton.leadingAnchor constraintEqualToAnchor:inputBar.leadingAnchor constant:12.0],
-        [imageButton.centerYAnchor constraintEqualToAnchor:inputBar.centerYAnchor],
-        [imageButton.widthAnchor constraintEqualToConstant:24.0],
-        [imageButton.heightAnchor constraintEqualToConstant:24.0],
 
         [sendButton.trailingAnchor constraintEqualToAnchor:inputBar.trailingAnchor constant:-4.0],
         [sendButton.centerYAnchor constraintEqualToAnchor:inputBar.centerYAnchor],
         [sendButton.widthAnchor constraintEqualToConstant:48.0],
         [sendButton.heightAnchor constraintEqualToConstant:48.0],
 
-        [textField.leadingAnchor constraintEqualToAnchor:imageButton.trailingAnchor constant:10.0],
+        [textField.leadingAnchor constraintEqualToAnchor:inputBar.leadingAnchor constant:18.0],
         [textField.trailingAnchor constraintEqualToAnchor:sendButton.leadingAnchor constant:-8.0],
         [textField.topAnchor constraintEqualToAnchor:inputBar.topAnchor],
         [textField.bottomAnchor constraintEqualToAnchor:inputBar.bottomAnchor],
     ]];
+}
+
+- (void)setupKeyboardHandling {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    tap.cancelsTouchesInView = NO;
+    [self.messageTableView addGestureRecognizer:tap];
+}
+
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    CGRect keyboardFrame = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGRect keyboardFrameInView = [self.view convertRect:keyboardFrame fromView:nil];
+    CGFloat safeAreaBottomY = CGRectGetMaxY(self.view.safeAreaLayoutGuide.layoutFrame);
+    CGFloat keyboardOverlap = MAX(0.0, safeAreaBottomY - CGRectGetMinY(keyboardFrameInView));
+    self.inputBarBottomConstraint.constant = keyboardOverlap > 0.0 ? -(keyboardOverlap + 8.0) : -42.0;
+
+    [self animateKeyboardLayoutWithNotification:notification completion:^{
+        [self scrollToLatestMessageIfNeededAnimated:NO];
+    }];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    self.inputBarBottomConstraint.constant = -42.0;
+    [self animateKeyboardLayoutWithNotification:notification completion:nil];
+}
+
+- (void)animateKeyboardLayoutWithNotification:(NSNotification *)notification completion:(void (^)(void))completion {
+    NSTimeInterval duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions options = ([notification.userInfo[UIKeyboardAnimationCurveUserInfoKey] integerValue] << 16);
+    [UIView animateWithDuration:duration delay:0.0 options:options animations:^{
+        [self.view layoutIfNeeded];
+    } completion:^(BOOL finished) {
+        if (completion) completion();
+    }];
+}
+
+- (void)dismissKeyboard {
+    [self.view endEditing:YES];
 }
 
 - (void)setupVideoButton {
@@ -304,7 +351,7 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
 
     [NSLayoutConstraint activateConstraints:@[
         [videoButton.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kFriendChatSidePadding],
-        [videoButton.bottomAnchor constraintEqualToAnchor:self.inputBar.topAnchor constant:-38.0],
+        [videoButton.bottomAnchor constraintEqualToAnchor:self.inputBar.topAnchor constant:-12],
         [videoButton.widthAnchor constraintEqualToConstant:44.0],
         [videoButton.heightAnchor constraintEqualToConstant:44.0],
     ]];
@@ -321,7 +368,7 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
     NSDictionary<NSString *, id> *message = self.messages[indexPath.row];
     BOOL incoming = [message[@"incoming"] boolValue];
     NSString *incomingAvatarName = self.peerAvatarName.length > 0 ? self.peerAvatarName : @"avatar_user_13";
-    [cell configureWithText:message[@"text"] incoming:incoming avatarName:incoming ? incomingAvatarName : @"avatar_user_01"];
+    [cell configureWithText:message[@"text"] incoming:incoming avatarName:incoming ? incomingAvatarName : @"avatar_user_12"];
     return cell;
 }
 
@@ -345,12 +392,20 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
 #pragma mark - Actions
 
 - (void)sendCurrentMessage {
+    if (![self isCurrentPeerFriend]) {
+        [self showNotFriendsAlert];
+        return;
+    }
+
     NSString *text = [self.messageInputField.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     if (text.length == 0) {
         return;
     }
 
-    [self.messages addObject:@{@"text": text, @"incoming": @NO}];
+    [self.messages addObject:@{@"text": text,
+                               @"incoming": @NO,
+                               @"timestamp": @(NSDate.date.timeIntervalSince1970)}];
+    [self persistMessagesForCurrentPeer];
     self.messageInputField.text = nil;
 
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.messages.count - 1 inSection:0];
@@ -358,7 +413,24 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
     [self.messageTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
 }
 
+- (BOOL)isCurrentPeerFriend {
+    return [FriendshipStore isFriendWithName:[self resolvedPeerName]
+                                      handle:self.peerHandle ?: @""
+                                      avatar:[self resolvedPeerAvatarName]];
+}
+
+- (void)showNotFriendsAlert {
+    [self showSimpleAlertWithTitle:@"Not friends yet"
+                           message:@"You can send messages after you and this user become friends."
+                        completion:nil];
+}
+
 - (void)didTapVideoButton {
+    if (![self isCurrentPeerFriend]) {
+        [self showNotFriendsAlert];
+        return;
+    }
+
     VideoCallViewController *videoCallViewController = [[VideoCallViewController alloc] init];
     videoCallViewController.hidesBottomBarWhenPushed = YES;
     if (self.navigationController) {
@@ -439,8 +511,8 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
 }
 
 - (void)returnToPreviousPageAfterBlocking {
-    if (self.navigationController && self.navigationController.viewControllers.firstObject != self) {
-        [self.navigationController popViewControllerAnimated:YES];
+    if (self.navigationController) {
+        [self.navigationController popToRootViewControllerAnimated:YES];
         return;
     }
 
@@ -462,6 +534,77 @@ static NSString * const kFriendChatMessageCellIdentifier = @"FriendChatMessageCe
 
 - (NSString *)resolvedPeerAvatarName {
     return self.peerAvatarName.length > 0 ? self.peerAvatarName : @"avatar_user_13";
+}
+
+#pragma mark - Message Persistence
+
+- (NSArray<NSDictionary<NSString *, id> *> *)loadMessagesForCurrentPeer {
+    NSArray *storedMessages = [NSUserDefaults.standardUserDefaults objectForKey:[self messagesDefaultsKey]];
+    return [self validatedMessagesFromArray:storedMessages];
+}
+
+- (void)persistMessagesForCurrentPeer {
+    [NSUserDefaults.standardUserDefaults setObject:self.messages forKey:[self messagesDefaultsKey]];
+    [NSUserDefaults.standardUserDefaults synchronize];
+}
+
+- (NSArray<NSDictionary<NSString *, id> *> *)validatedMessagesFromArray:(NSArray *)array {
+    if (![array isKindOfClass:NSArray.class]) {
+        return @[];
+    }
+
+    NSMutableArray<NSDictionary<NSString *, id> *> *messages = [NSMutableArray arrayWithCapacity:array.count];
+    for (id item in array) {
+        if (![item isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+
+        NSDictionary *message = (NSDictionary *)item;
+        NSString *text = message[@"text"];
+        id incomingValue = message[@"incoming"];
+        if (![text isKindOfClass:NSString.class] || text.length == 0 ||
+            ![incomingValue respondsToSelector:@selector(boolValue)]) {
+            continue;
+        }
+
+        NSMutableDictionary<NSString *, id> *validatedMessage = [@{@"text": text, @"incoming": @([incomingValue boolValue])} mutableCopy];
+        id timestamp = message[@"timestamp"];
+        if ([timestamp respondsToSelector:@selector(doubleValue)]) {
+            validatedMessage[@"timestamp"] = @([timestamp doubleValue]);
+        }
+        [messages addObject:validatedMessage.copy];
+    }
+
+    return messages.copy;
+}
+
+- (NSString *)messagesDefaultsKey {
+    NSString *identity = self.peerHandle.length > 0 ? self.peerHandle : [NSString stringWithFormat:@"%@.%@", [self resolvedPeerName], [self resolvedPeerAvatarName]];
+    return [kFriendChatMessagesDefaultsPrefix stringByAppendingString:[self normalizedDefaultsKeyComponentFromString:identity]];
+}
+
+- (NSString *)normalizedDefaultsKeyComponentFromString:(NSString *)string {
+    NSCharacterSet *allowedCharacters = NSCharacterSet.alphanumericCharacterSet;
+    NSMutableString *normalizedString = [NSMutableString string];
+    for (NSUInteger index = 0; index < string.length; index++) {
+        unichar character = [string characterAtIndex:index];
+        if ([allowedCharacters characterIsMember:character]) {
+            [normalizedString appendFormat:@"%C", character];
+        } else {
+            [normalizedString appendString:@"_"];
+        }
+    }
+
+    return normalizedString.length > 0 ? normalizedString : @"default";
+}
+
+- (void)scrollToLatestMessageIfNeededAnimated:(BOOL)animated {
+    if (self.messages.count == 0 || !self.messageTableView) {
+        return;
+    }
+
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.messages.count - 1 inSection:0];
+    [self.messageTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:animated];
 }
 
 @end

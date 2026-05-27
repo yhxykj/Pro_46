@@ -15,6 +15,12 @@ NS_ASSUME_NONNULL_BEGIN
 /// Call after a successful login or registration.
 + (void)saveLoginState;
 
+/// Call after a successful login or registration with the active account email.
++ (void)saveLoginStateWithEmail:(NSString *)email;
+
+/// Returns the email for the current logged-in account.
++ (NSString *)currentEmail;
+
 /// Call on logout to clear the session.
 + (void)clearLoginState;
 

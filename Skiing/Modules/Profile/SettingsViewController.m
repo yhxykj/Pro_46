@@ -8,8 +8,12 @@
 #import "UserSession.h"
 #import "ViewController.h"
 #import "DesignTokens.h"
+#import <SafariServices/SafariServices.h>
 
 static CGFloat const kSettingsSidePadding = 24.0;
+static NSString * const kSettingsPrivacyAgreementURL = @"https://www.example.com/privacy";
+static NSString * const kSettingsUserAgreementURL = @"https://www.example.com/agreement";
+static NSString * const kSettingsCommunityGuidelinesURL = @"https://www.example.com/community-guidelines";
 
 @interface SettingsViewController ()
 @property (nonatomic, strong) CAGradientLayer *backgroundGradientLayer;
@@ -73,11 +77,26 @@ static CGFloat const kSettingsSidePadding = 24.0;
     UIControl *blacklistItem = [self menuItemWithTitle:@"Blacklist"];
     [blacklistItem addTarget:self action:@selector(didTapBlacklistItem) forControlEvents:UIControlEventTouchUpInside];
     [menuStackView addArrangedSubview:blacklistItem];
-    [menuStackView addArrangedSubview:[self menuItemWithTitle:@"Privacy agreement"]];
-    [menuStackView addArrangedSubview:[self menuItemWithTitle:@"User agreement"]];
-    [menuStackView addArrangedSubview:[self menuItemWithTitle:@"Community Guidelines"]];
-    [menuStackView addArrangedSubview:[self menuItemWithTitle:@"Contact Us"]];
-    [menuStackView addArrangedSubview:[self menuItemWithTitle:@"Delete of account"]];
+
+    UIControl *privacyItem = [self menuItemWithTitle:@"Privacy agreement"];
+    [privacyItem addTarget:self action:@selector(didTapPrivacyAgreementItem) forControlEvents:UIControlEventTouchUpInside];
+    [menuStackView addArrangedSubview:privacyItem];
+
+    UIControl *userAgreementItem = [self menuItemWithTitle:@"User agreement"];
+    [userAgreementItem addTarget:self action:@selector(didTapUserAgreementItem) forControlEvents:UIControlEventTouchUpInside];
+    [menuStackView addArrangedSubview:userAgreementItem];
+
+    UIControl *communityGuidelinesItem = [self menuItemWithTitle:@"Community Guidelines"];
+    [communityGuidelinesItem addTarget:self action:@selector(didTapCommunityGuidelinesItem) forControlEvents:UIControlEventTouchUpInside];
+    [menuStackView addArrangedSubview:communityGuidelinesItem];
+
+    UIControl *contactItem = [self menuItemWithTitle:@"Contact Us"];
+    [contactItem addTarget:self action:@selector(didTapContactUsItem) forControlEvents:UIControlEventTouchUpInside];
+    [menuStackView addArrangedSubview:contactItem];
+
+    UIControl *deleteAccountItem = [self menuItemWithTitle:@"Delete of account"];
+    [deleteAccountItem addTarget:self action:@selector(didTapDeleteAccountItem) forControlEvents:UIControlEventTouchUpInside];
+    [menuStackView addArrangedSubview:deleteAccountItem];
 
     for (UIView *item in menuStackView.arrangedSubviews) {
         [item.heightAnchor constraintEqualToConstant:76.0].active = YES;
@@ -163,6 +182,51 @@ static CGFloat const kSettingsSidePadding = 24.0;
 
     blacklistViewController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:blacklistViewController animated:YES completion:nil];
+}
+
+- (void)didTapPrivacyAgreementItem {
+    [self openURL:kSettingsPrivacyAgreementURL];
+}
+
+- (void)didTapUserAgreementItem {
+    [self openURL:kSettingsUserAgreementURL];
+}
+
+- (void)didTapCommunityGuidelinesItem {
+    [self openURL:kSettingsCommunityGuidelinesURL];
+}
+
+- (void)didTapContactUsItem {
+    [self showSettingsInfoWithTitle:@"Contact Us"
+                             message:@"Need help? Contact the Skiing support team at support@skiingapp.com. We usually review messages within 2 business days."];
+}
+
+- (void)didTapDeleteAccountItem {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Delete account?"
+                                                                   message:@"Your request will be submitted for review. Account deletion may remove your profile, posts, chats, and saved activity."
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Submit request" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+        [self showSettingsInfoWithTitle:@"Request submitted"
+                                message:@"Your account deletion request has been submitted for review."];
+    }]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)showSettingsInfoWithTitle:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)openURL:(NSString *)urlString {
+    NSURL *url = [NSURL URLWithString:urlString];
+    if (!url) return;
+
+    SFSafariViewController *safari = [[SFSafariViewController alloc] initWithURL:url];
+    [self presentViewController:safari animated:YES completion:nil];
 }
 
 - (void)didTapLogoutButton {

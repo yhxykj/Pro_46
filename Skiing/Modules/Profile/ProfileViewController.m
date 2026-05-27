@@ -12,9 +12,15 @@
 #import "CoinBalanceStore.h"
 #import "EmptyStateView.h"
 #import "DesignTokens.h"
+#import "UserSession.h"
 #import <AVFoundation/AVFoundation.h>
 
 static CGFloat const kMineSidePadding = 16.0;
+static NSString * const kTestAccountName = @"GardenDream";
+static NSString * const kProfileDisplayNameDefaultsKey = @"kProfileDisplayNameDefaultsKey";
+static NSString * const kTestAccountHandle = @"@gardendream";
+static NSString * const kTestAccountEmail = @"skiing666@gmail.com";
+static NSString * const kTestAccountAvatarName = @"avatar_user_12";
 static NSString * const kTestAccountPostVideoFileName = @"video_lifestyle_05";
 static NSString * const kTestAccountPostDescription = @"Dreamy garden wedding inspiration for your next board";
 static NSString * const kTestAccountPostLikeCount = @"521";
@@ -30,6 +36,8 @@ static NSString * const kTestAccountPostViewCount = @"3399";
 @property (nonatomic, strong) UILabel *followingValueLabel;
 @property (nonatomic, strong) UILabel *followersValueLabel;
 @property (nonatomic, strong) UILabel *friendsValueLabel;
+@property (nonatomic, strong) UILabel *nameLabel;
+@property (nonatomic, strong) UILabel *handleLabel;
 @end
 
 @implementation ProfileViewController
@@ -37,8 +45,12 @@ static NSString * const kTestAccountPostViewCount = @"3399";
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor colorWithRed:0.74 green:0.77 blue:1.0 alpha:1.0];
-    self.postImage = [self thumbnailForVideoNamed:kTestAccountPostVideoFileName] ?: [UIImage imageNamed:@"explore_mountain_header"];
-    self.postImages = self.postImage ? @[self.postImage] : @[];
+    if ([self isTestAccount]) {
+        self.postImage = [self thumbnailForVideoNamed:kTestAccountPostVideoFileName] ?: [UIImage imageNamed:@"explore_mountain_header"];
+        self.postImages = self.postImage ? @[self.postImage] : @[];
+    } else {
+        self.postImages = @[];
+    }
     [NSNotificationCenter.defaultCenter addObserver:self
                                            selector:@selector(updateCoinBalance)
                                                name:CoinBalanceStoreDidChangeNotification
@@ -56,6 +68,7 @@ static NSString * const kTestAccountPostViewCount = @"3399";
     [self.navigationController setNavigationBarHidden:YES animated:NO];
     [self updateCoinBalance];
     [self updateRelationshipCounts];
+    [self updateProfileName];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -107,7 +120,7 @@ static NSString * const kTestAccountPostViewCount = @"3399";
     profileCard.layer.cornerRadius = 20.0;
     profileCard.translatesAutoresizingMaskIntoConstraints = NO;
 
-    UIImageView *avatarView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"avatar_user_01"]];
+    UIImageView *avatarView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:[self currentAvatarName]]];
     avatarView.contentMode = UIViewContentModeScaleAspectFill;
     avatarView.clipsToBounds = YES;
     avatarView.layer.cornerRadius = 44.0;
@@ -115,12 +128,12 @@ static NSString * const kTestAccountPostViewCount = @"3399";
     avatarView.layer.borderColor = UIColor.whiteColor.CGColor;
     avatarView.translatesAutoresizingMaskIntoConstraints = NO;
 
-    UILabel *nameLabel = [self labelWithText:@"Gaston"
-                                        font:[DesignFonts semibold:21]
-                                       color:[UIColor colorWithRed:0.18 green:0.18 blue:0.23 alpha:1.0]];
-    UILabel *handleLabel = [self labelWithText:@"@279jsof895"
-                                          font:[DesignFonts regular:15]
-                                         color:[UIColor colorWithRed:0.39 green:0.39 blue:0.50 alpha:1.0]];
+    self.nameLabel = [self labelWithText:[self currentProfileName]
+                                    font:[DesignFonts semibold:21]
+                                   color:[UIColor colorWithRed:0.18 green:0.18 blue:0.23 alpha:1.0]];
+    self.handleLabel = [self labelWithText:[self currentProfileHandle]
+                                      font:[DesignFonts regular:15]
+                                     color:[UIColor colorWithRed:0.39 green:0.39 blue:0.50 alpha:1.0]];
 
     UIStackView *statsStack = [[UIStackView alloc] init];
     statsStack.axis = UILayoutConstraintAxisHorizontal;
@@ -163,8 +176,8 @@ static NSString * const kTestAccountPostViewCount = @"3399";
     [contentView addSubview:settingsButton];
     [contentView addSubview:profileCard];
     [profileCard addSubview:avatarView];
-    [profileCard addSubview:nameLabel];
-    [profileCard addSubview:handleLabel];
+    [profileCard addSubview:self.nameLabel];
+    [profileCard addSubview:self.handleLabel];
     [profileCard addSubview:statsStack];
     [contentView addSubview:coinCardImageView];
     [coinCardImageView addSubview:coinsTitleLabel];
@@ -223,13 +236,13 @@ static NSString * const kTestAccountPostViewCount = @"3399";
         [avatarView.widthAnchor constraintEqualToConstant:88],
         [avatarView.heightAnchor constraintEqualToConstant:88],
 
-        [nameLabel.leadingAnchor constraintEqualToAnchor:avatarView.trailingAnchor constant:12],
-        [nameLabel.topAnchor constraintEqualToAnchor:profileCard.topAnchor constant:36],
-        [nameLabel.trailingAnchor constraintLessThanOrEqualToAnchor:profileCard.trailingAnchor constant:-16],
+        [self.nameLabel.leadingAnchor constraintEqualToAnchor:avatarView.trailingAnchor constant:12],
+        [self.nameLabel.topAnchor constraintEqualToAnchor:profileCard.topAnchor constant:36],
+        [self.nameLabel.trailingAnchor constraintLessThanOrEqualToAnchor:profileCard.trailingAnchor constant:-16],
 
-        [handleLabel.leadingAnchor constraintEqualToAnchor:nameLabel.leadingAnchor],
-        [handleLabel.topAnchor constraintEqualToAnchor:nameLabel.bottomAnchor constant:8],
-        [handleLabel.trailingAnchor constraintLessThanOrEqualToAnchor:profileCard.trailingAnchor constant:-16],
+        [self.handleLabel.leadingAnchor constraintEqualToAnchor:self.nameLabel.leadingAnchor],
+        [self.handleLabel.topAnchor constraintEqualToAnchor:self.nameLabel.bottomAnchor constant:8],
+        [self.handleLabel.trailingAnchor constraintLessThanOrEqualToAnchor:profileCard.trailingAnchor constant:-16],
 
         [statsStack.leadingAnchor constraintEqualToAnchor:profileCard.leadingAnchor constant:13],
         [statsStack.trailingAnchor constraintEqualToAnchor:profileCard.trailingAnchor constant:-42],
@@ -399,8 +412,8 @@ static NSString * const kTestAccountPostViewCount = @"3399";
 
     MineVideoPlayerViewController *playerViewController = [[MineVideoPlayerViewController alloc] init];
     playerViewController.videoFileName = kTestAccountPostVideoFileName;
-    playerViewController.username = @"Gaston";
-    playerViewController.avatarName = @"avatar_user_01";
+    playerViewController.username = [self currentProfileName];
+    playerViewController.avatarName = [self currentAvatarName];
     playerViewController.desc = kTestAccountPostDescription;
     playerViewController.likeCount = kTestAccountPostLikeCount;
     playerViewController.commentCount = kTestAccountPostCommentCount;
@@ -490,6 +503,56 @@ static NSString * const kTestAccountPostViewCount = @"3399";
     self.followingValueLabel.text = [self relationshipCountTextForTitle:@"Following"];
     self.followersValueLabel.text = [self relationshipCountTextForTitle:@"Followers"];
     self.friendsValueLabel.text = [self relationshipCountTextForTitle:@"Friends"];
+}
+
+- (void)updateProfileName {
+    self.nameLabel.text = [self currentProfileName];
+    self.handleLabel.text = [self currentProfileHandle];
+}
+
+- (NSString *)currentProfileName {
+    NSString *storedName = [NSUserDefaults.standardUserDefaults stringForKey:[self profileDisplayNameDefaultsKey]];
+    NSString *trimmedName = [storedName stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (trimmedName.length > 0) {
+        return trimmedName;
+    }
+
+    return [self isTestAccount] ? kTestAccountName : [self fallbackNameFromCurrentEmail];
+}
+
+- (NSString *)currentProfileHandle {
+    if ([self isTestAccount]) {
+        return kTestAccountHandle;
+    }
+
+    NSString *email = [UserSession currentEmail];
+    NSString *name = [[email componentsSeparatedByString:@"@"] firstObject] ?: @"user";
+    NSString *handle = [[name lowercaseString] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    return [NSString stringWithFormat:@"@%@", handle.length > 0 ? handle : @"user"];
+}
+
+- (NSString *)currentAvatarName {
+    return [self isTestAccount] ? kTestAccountAvatarName : @"avatar_placeholder";
+}
+
+- (BOOL)isTestAccount {
+    return [[[UserSession currentEmail] lowercaseString] isEqualToString:kTestAccountEmail];
+}
+
+- (NSString *)fallbackNameFromCurrentEmail {
+    NSString *email = [UserSession currentEmail];
+    NSString *name = [[email componentsSeparatedByString:@"@"] firstObject] ?: @"Skiing User";
+    NSString *trimmedName = [name stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    return trimmedName.length > 0 ? trimmedName : @"Skiing User";
+}
+
+- (NSString *)profileDisplayNameDefaultsKey {
+    NSString *email = [[UserSession currentEmail] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString;
+    if (email.length == 0) {
+        return kProfileDisplayNameDefaultsKey;
+    }
+
+    return [NSString stringWithFormat:@"%@.%@", kProfileDisplayNameDefaultsKey, email];
 }
 
 - (NSString *)relationshipCountTextForTitle:(NSString *)title {

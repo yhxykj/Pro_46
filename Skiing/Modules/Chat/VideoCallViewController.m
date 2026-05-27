@@ -102,7 +102,7 @@
 }
 
 - (void)setupLocalPreview {
-    UIImageView *preview = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"avatar_user_13"]];
+    UIImageView *preview = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"avatar_user_12"]];
     preview.contentMode = UIViewContentModeScaleAspectFill;
     preview.clipsToBounds = YES;
     preview.layer.cornerRadius = 50.0;

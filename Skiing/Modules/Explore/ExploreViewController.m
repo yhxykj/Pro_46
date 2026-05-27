@@ -21,10 +21,17 @@ static char kExploreRoomAssociationKey;
 @property (nonatomic, strong) UIImage *skiThumbnail;
 @property (nonatomic, strong) NSArray<NSString *> *topVideoFileNames;
 @property (nonatomic, strong) NSArray<NSDictionary<NSString *, id> *> *chatRooms;
+@property (nonatomic, strong) NSArray<NSDictionary<NSString *, NSString *> *> *resorts;
+@property (nonatomic, strong) NSArray<UIView *> *resortPins;
 @property (nonatomic, strong) UIButton *featuredButton;
 @property (nonatomic, strong) UIButton *chatButton;
 @property (nonatomic, strong) UIView *chatRoomsContainer;
 @property (nonatomic, strong) NSLayoutConstraint *featuredContentBottomConstraint;
+@property (nonatomic, strong) UILabel *resortTitleLabel;
+@property (nonatomic, strong) UILabel *resortLocationLabel;
+@property (nonatomic, strong) UILabel *resortTagLabel;
+@property (nonatomic, strong) UILabel *resortSummaryLabel;
+@property (nonatomic, assign) NSInteger selectedResortIndex;
 @property (nonatomic, assign) BOOL showingChatRooms;
 @end
 
@@ -35,6 +42,8 @@ static char kExploreRoomAssociationKey;
     self.view.backgroundColor = [UIColor colorWithRed:0.79 green:0.80 blue:1.00 alpha:1.0];
     self.topVideoFileNames = [self visibleTopVideoFileNames];
     self.chatRooms = [self loadChatRooms];
+    self.resorts = [self makeResorts];
+    self.selectedResortIndex = 0;
     self.skiThumbnail = [self thumbnailForVideoNamed:@"video_ski_01"] ?: [UIImage imageNamed:@"explore_mountain_header"];
     [self setupScrollView];
     [self setupContent];
@@ -49,16 +58,33 @@ static char kExploreRoomAssociationKey;
 
 - (NSArray<NSDictionary<NSString *, id> *> *)makeChatRooms {
     NSArray<NSDictionary<NSString *, NSString *> *> *templates = @[
-        @{@"name": @"Powder Pals",
-          @"desc": @"Fresh snow tips, mellow meetups, and lift updates."},
-        @{@"name": @"Lift Line Crew",
-          @"desc": @"Quick chats while waiting for the next run."},
-        @{@"name": @"Bluebird Riders",
-          @"desc": @"Sunny-day plans, trail notes, and photo spots."},
-        @{@"name": @"Apres Snow",
-          @"desc": @"Warm drinks, dinner plans, and post-run stories."},
-        @{@"name": @"Carve Club",
-          @"desc": @"Gear talk, carving practice, and friendly advice."},
+        @{@"name": @"Powder Pups",
+          @"desc": @"New to snow? Ask anything and meet other beginners finding their snow legs.",
+          @"icon": @"chat_room_powder_pups"},
+        @{@"name": @"Après Lounge",
+          @"desc": @"Chill after a long day on the mountain. Drinks, stories, and good vibes.",
+          @"icon": @"chat_room_apres_lounge"},
+        @{@"name": @"Park Rats",
+          @"desc": @"Features, spins, and stoke from the terrain park. Share your progress.",
+          @"icon": @"chat_room_park_rats"},
+        @{@"name": @"Carve Talk",
+          @"desc": @"Obsessed with carving technique and gear? This is your space.",
+          @"icon": @"chat_room_carve_talk"},
+        @{@"name": @"Snow Sisters",
+          @"desc": @"A friendly space for women who ride. Share tips and plan trips.",
+          @"icon": @"chat_room_snow_sisters"},
+        @{@"name": @"The Stomp Pad",
+          @"desc": @"Park rats unite. Rails, kickers, and butters for the one-plank crew.",
+          @"icon": @"chat_room_stomp_pad"},
+        @{@"name": @"Pole Plant",
+          @"desc": @"Twin tips, telemark, or cruising. Skiers of all kinds are welcome.",
+          @"icon": @"chat_room_pole_plant"},
+        @{@"name": @"Snow Report - Live",
+          @"desc": @"Real-time snow conditions, lift lines, and powder alerts. Share what you see.",
+          @"icon": @"chat_room_snow_report_live"},
+        @{@"name": @"First Chair",
+          @"desc": @"Early birds and dawn patrol chasing untouched fresh tracks.",
+          @"icon": @"chat_room_first_chair"},
     ];
 
     NSMutableArray<NSDictionary<NSString *, id> *> *rooms = [NSMutableArray arrayWithCapacity:templates.count];
@@ -66,6 +92,7 @@ static char kExploreRoomAssociationKey;
         NSInteger onlineCount = 7 + arc4random_uniform(18);
         [rooms addObject:@{@"name": template[@"name"],
                            @"desc": template[@"desc"],
+                           @"icon": template[@"icon"],
                            @"online": @(onlineCount)}];
     }
 
@@ -76,7 +103,7 @@ static char kExploreRoomAssociationKey;
     NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
     NSArray *storedRooms = [defaults objectForKey:kExploreChatRoomsDefaultsKey];
     NSArray<NSDictionary<NSString *, id> *> *validatedRooms = [self validatedChatRoomsFromArray:storedRooms];
-    if (validatedRooms.count == 5) {
+    if (validatedRooms.count == 9) {
         return validatedRooms;
     }
 
@@ -104,9 +131,11 @@ static char kExploreRoomAssociationKey;
         NSDictionary *room = (NSDictionary *)item;
         NSString *name = room[@"name"];
         NSString *description = room[@"desc"];
+        NSString *icon = room[@"icon"];
         id onlineValue = room[@"online"];
         if (![name isKindOfClass:NSString.class] || name.length == 0 ||
             ![description isKindOfClass:NSString.class] || description.length == 0 ||
+            ![icon isKindOfClass:NSString.class] || icon.length == 0 ||
             ![onlineValue respondsToSelector:@selector(integerValue)]) {
             continue;
         }
@@ -114,10 +143,11 @@ static char kExploreRoomAssociationKey;
         NSInteger onlineCount = MAX(1, [onlineValue integerValue]);
         [rooms addObject:@{@"name": name,
                            @"desc": description,
+                           @"icon": icon,
                            @"online": @(onlineCount)}];
     }
 
-    return rooms.count == 5 ? rooms.copy : @[];
+    return rooms.count == 9 ? rooms.copy : @[];
 }
 
 - (NSArray<NSDictionary<NSString *, NSString *> *> *)topVideoCandidates {
@@ -166,9 +196,44 @@ static char kExploreRoomAssociationKey;
     self.contentView = nil;
     self.chatRoomsContainer = nil;
     self.featuredContentBottomConstraint = nil;
+    self.resortPins = nil;
+    self.resortTitleLabel = nil;
+    self.resortLocationLabel = nil;
+    self.resortTagLabel = nil;
+    self.resortSummaryLabel = nil;
     self.showingChatRooms = NO;
     [self setupScrollView];
     [self setupContent];
+}
+
+- (NSArray<NSDictionary<NSString *, NSString *> *> *)makeResorts {
+    return @[
+        @{@"pin": @"Snowbasin",
+          @"title": @"Snowbasin Resort",
+          @"location": @"Huntsville, Utah",
+          @"tag": @"#1 in the U.S. (2025 USA Today Readers' Choice)",
+          @"summary": @"Consecutive winner with deep powder, Olympic-grade facilities, 3,000+ acres, and minimal lift lines."},
+        @{@"pin": @"Big S...",
+          @"title": @"Big Sky Resort",
+          @"location": @"Big Sky, Montana",
+          @"tag": @"\"The Biggest Skiing in America\"",
+          @"summary": @"5,850 acres, uncrowded slopes, endless wide-open terrain."},
+        @{@"pin": @"Aspen",
+          @"title": @"Aspen Snowmass",
+          @"location": @"Aspen, Colorado",
+          @"tag": @"Ultimate luxury resort",
+          @"summary": @"Four connected mountains, world-class dining, high-end shopping, and host of X Games."},
+        @{@"pin": @"Deer",
+          @"title": @"Deer Valley Resort",
+          @"location": @"Park City, Utah",
+          @"tag": @"5-star service, skiers-only",
+          @"summary": @"Top-rated grooming, premium service, and no snowboarders."},
+        @{@"pin": @"Palisades",
+          @"title": @"Palisades Tahoe",
+          @"location": @"Olympic Valley, California",
+          @"tag": @"Olympic history & stunning views",
+          @"summary": @"1960 Winter Olympics host, legendary KT-22 run, and Lake Tahoe scenery."},
+    ];
 }
 
 #pragma mark - Setup
@@ -232,11 +297,19 @@ static char kExploreRoomAssociationKey;
     mapImageView.translatesAutoresizingMaskIntoConstraints = NO;
     [mapView addSubview:mapImageView];
 
-    UIView *snowbasinPin = [self mapPinWithTitle:@"Snowbasin" highlighted:YES];
-    UIView *bigSkyPin = [self mapPinWithTitle:@"Big Sky" highlighted:NO];
-    UIView *aspenPin = [self mapPinWithTitle:@"Aspen" highlighted:NO];
-    UIView *deerPin = [self mapPinWithTitle:@"Deer" highlighted:NO];
-    UIView *palisadesPin = [self mapPinWithTitle:@"Palisades" highlighted:NO];
+    UIView *snowbasinPin = [self mapPinWithTitle:self.resorts[0][@"pin"] highlighted:YES];
+    UIView *bigSkyPin = [self mapPinWithTitle:self.resorts[1][@"pin"] highlighted:NO];
+    UIView *aspenPin = [self mapPinWithTitle:self.resorts[2][@"pin"] highlighted:NO];
+    UIView *deerPin = [self mapPinWithTitle:self.resorts[3][@"pin"] highlighted:NO];
+    UIView *palisadesPin = [self mapPinWithTitle:self.resorts[4][@"pin"] highlighted:NO];
+    self.resortPins = @[snowbasinPin, bigSkyPin, aspenPin, deerPin, palisadesPin];
+    for (NSInteger index = 0; index < (NSInteger)self.resortPins.count; index++) {
+        UIView *pin = self.resortPins[index];
+        pin.tag = index;
+        pin.userInteractionEnabled = YES;
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapResortPin:)];
+        [pin addGestureRecognizer:tap];
+    }
     [mapView addSubview:snowbasinPin];
     [mapView addSubview:bigSkyPin];
     [mapView addSubview:aspenPin];
@@ -415,6 +488,39 @@ static char kExploreRoomAssociationKey;
     [self.chatButton setTitleColor:[UIColor colorWithWhite:1 alpha:self.showingChatRooms ? 1.0 : 0.95] forState:UIControlStateNormal];
 }
 
+- (void)didTapResortPin:(UITapGestureRecognizer *)gesture {
+    NSInteger index = gesture.view.tag;
+    if (index < 0 || index >= (NSInteger)self.resorts.count || index == self.selectedResortIndex) {
+        return;
+    }
+
+    self.selectedResortIndex = index;
+    [self updateResortCard];
+    [self updateResortPins];
+}
+
+- (void)updateResortCard {
+    NSDictionary<NSString *, NSString *> *resort = [self selectedResort];
+    self.resortTitleLabel.text = resort[@"title"];
+    self.resortLocationLabel.text = resort[@"location"];
+    self.resortTagLabel.text = resort[@"tag"];
+    self.resortSummaryLabel.text = resort[@"summary"];
+}
+
+- (void)updateResortPins {
+    for (NSInteger index = 0; index < (NSInteger)self.resortPins.count; index++) {
+        [self configureMapPin:self.resortPins[index] highlighted:index == self.selectedResortIndex];
+    }
+}
+
+- (NSDictionary<NSString *, NSString *> *)selectedResort {
+    if (self.selectedResortIndex < 0 || self.selectedResortIndex >= (NSInteger)self.resorts.count) {
+        return self.resorts.firstObject;
+    }
+
+    return self.resorts[self.selectedResortIndex];
+}
+
 - (void)buildChatRoomsContent {
     [self.chatRoomsContainer removeFromSuperview];
 
@@ -465,7 +571,7 @@ static char kExploreRoomAssociationKey;
     card.translatesAutoresizingMaskIntoConstraints = NO;
     [self attachOpenChatGestureToView:card room:room];
 
-    UIImageView *thumbnail = [[UIImageView alloc] initWithImage:self.skiThumbnail];
+    UIImageView *thumbnail = [[UIImageView alloc] initWithImage:[self roomIconForRoom:room]];
     thumbnail.contentMode = UIViewContentModeScaleAspectFill;
     thumbnail.clipsToBounds = YES;
     thumbnail.layer.cornerRadius = 10;
@@ -543,18 +649,11 @@ static char kExploreRoomAssociationKey;
 
 - (UIView *)mapPinWithTitle:(NSString *)title highlighted:(BOOL)highlighted {
     UIView *container = [[UIView alloc] init];
-    container.backgroundColor = UIColor.whiteColor;
-    container.layer.cornerRadius = highlighted ? 26 : 19;
     container.layer.shadowColor = [UIColor colorWithRed:0.25 green:0.36 blue:0.55 alpha:1.0].CGColor;
     container.layer.shadowOpacity = 0.10;
     container.layer.shadowRadius = 8;
     container.layer.shadowOffset = CGSizeMake(0, 4);
     container.translatesAutoresizingMaskIntoConstraints = NO;
-
-    if (highlighted) {
-        container.layer.borderWidth = 5;
-        container.layer.borderColor = [UIColor colorWithRed:1.00 green:0.93 blue:0.48 alpha:1.0].CGColor;
-    }
 
     UIImageView *icon = [self imageViewWithName:@"explore_icon_snowflake"];
     UILabel *label = [self labelWithText:title
@@ -575,7 +674,16 @@ static char kExploreRoomAssociationKey;
         [label.trailingAnchor constraintLessThanOrEqualToAnchor:container.trailingAnchor constant:-9],
     ]];
 
+    [self configureMapPin:container highlighted:highlighted];
     return container;
+}
+
+- (void)configureMapPin:(UIView *)pin highlighted:(BOOL)highlighted {
+    pin.backgroundColor = UIColor.whiteColor;
+    CGFloat highlightedRadius = CGRectGetHeight(pin.bounds) > 0.0 ? CGRectGetHeight(pin.bounds) / 2.0 : 26.0;
+    pin.layer.cornerRadius = highlighted ? highlightedRadius : 19.0;
+    pin.layer.borderWidth = highlighted ? 5.0 : 0.0;
+    pin.layer.borderColor = highlighted ? [UIColor colorWithRed:1.00 green:0.93 blue:0.48 alpha:1.0].CGColor : UIColor.clearColor.CGColor;
 }
 
 - (UIView *)makeResortCard {
@@ -588,27 +696,42 @@ static char kExploreRoomAssociationKey;
     card.layer.shadowOffset = CGSizeMake(0, 6);
     card.translatesAutoresizingMaskIntoConstraints = NO;
 
-    UILabel *title = [self labelWithText:@"Snowbasin Resort"
+    NSDictionary<NSString *, NSString *> *resort = [self selectedResort];
+
+    UILabel *title = [self labelWithText:resort[@"title"]
                                     font:[DesignFonts semibold:20]
                                    color:[UIColor colorWithRed:0.18 green:0.18 blue:0.21 alpha:1.0]];
+    title.adjustsFontSizeToFitWidth = YES;
+    title.minimumScaleFactor = 0.82;
+    self.resortTitleLabel = title;
+
     UIImageView *locationImage = [self imageViewWithName:@"explore_badge_location"];
-    UILabel *locationLabel = [self labelWithText:@"Huntsville, Utah"
+    UILabel *locationLabel = [self labelWithText:resort[@"location"]
                                             font:[DesignFonts regular:12]
                                            color:[UIColor colorWithRed:0.24 green:0.24 blue:0.28 alpha:1.0]];
+    locationLabel.adjustsFontSizeToFitWidth = YES;
+    locationLabel.minimumScaleFactor = 0.86;
+    self.resortLocationLabel = locationLabel;
+
     UIImageView *tagImage = [self imageViewWithName:@"explore_badge_tag"];
-    UILabel *tagLabel = [self labelWithText:@"#1 in the U.S. (2025 USA Today Readers' Choice)"
+    UILabel *tagLabel = [self labelWithText:resort[@"tag"]
                                        font:[DesignFonts regular:12]
                                       color:[UIColor colorWithRed:0.24 green:0.24 blue:0.28 alpha:1.0]];
+    tagLabel.numberOfLines = 2;
+    tagLabel.adjustsFontSizeToFitWidth = YES;
+    tagLabel.minimumScaleFactor = 0.86;
+    self.resortTagLabel = tagLabel;
 
     UIView *summaryBox = [[UIView alloc] init];
     summaryBox.backgroundColor = [UIColor colorWithRed:0.91 green:0.95 blue:1.00 alpha:1.0];
     summaryBox.layer.cornerRadius = 14;
     summaryBox.translatesAutoresizingMaskIntoConstraints = NO;
 
-    UILabel *summary = [self labelWithText:@"Consecutive winner with deep powder, Olympic-grade\nfacilities, 3,000+ acres, and minimal lift lines."
+    UILabel *summary = [self labelWithText:resort[@"summary"]
                                       font:[DesignFonts regular:13]
                                      color:[UIColor colorWithRed:0.03 green:0.24 blue:0.52 alpha:1.0]];
-    summary.numberOfLines = 3;
+    summary.numberOfLines = 4;
+    self.resortSummaryLabel = summary;
 
     UIImageView *skiImage = [self imageViewWithName:@"explore_ski_equipment"];
     skiImage.transform = CGAffineTransformMakeRotation(0.13);
@@ -642,7 +765,7 @@ static char kExploreRoomAssociationKey;
         [tagImage.heightAnchor constraintEqualToConstant:15],
 
         [tagLabel.leadingAnchor constraintEqualToAnchor:tagImage.trailingAnchor constant:5],
-        [tagLabel.centerYAnchor constraintEqualToAnchor:tagImage.centerYAnchor],
+        [tagLabel.topAnchor constraintEqualToAnchor:tagImage.topAnchor constant:-1],
         [tagLabel.trailingAnchor constraintEqualToAnchor:card.trailingAnchor constant:-14],
 
         [summaryBox.leadingAnchor constraintEqualToAnchor:title.leadingAnchor],
@@ -652,7 +775,7 @@ static char kExploreRoomAssociationKey;
 
         [summary.leadingAnchor constraintEqualToAnchor:summaryBox.leadingAnchor constant:15],
         [summary.trailingAnchor constraintEqualToAnchor:summaryBox.trailingAnchor constant:-15],
-        [summary.topAnchor constraintEqualToAnchor:summaryBox.topAnchor constant:16],
+        [summary.centerYAnchor constraintEqualToAnchor:summaryBox.centerYAnchor],
 
         [skiImage.topAnchor constraintEqualToAnchor:card.topAnchor constant:-34],
         [skiImage.trailingAnchor constraintEqualToAnchor:card.trailingAnchor constant:-4],
@@ -695,7 +818,7 @@ static char kExploreRoomAssociationKey;
     card.translatesAutoresizingMaskIntoConstraints = NO;
     [self attachOpenChatGestureToView:card room:room];
 
-    UIImageView *thumbnail = [[UIImageView alloc] initWithImage:self.skiThumbnail];
+    UIImageView *thumbnail = [[UIImageView alloc] initWithImage:[self roomIconForRoom:room]];
     thumbnail.contentMode = UIViewContentModeScaleAspectFill;
     thumbnail.clipsToBounds = YES;
     thumbnail.layer.cornerRadius = 10;
@@ -905,6 +1028,12 @@ static char kExploreRoomAssociationKey;
 - (NSString *)roomDescriptionForRoom:(NSDictionary<NSString *, id> *)room {
     NSString *description = room[@"desc"];
     return [description isKindOfClass:NSString.class] && description.length > 0 ? description : @"Share slope plans and mountain updates.";
+}
+
+- (UIImage *)roomIconForRoom:(NSDictionary<NSString *, id> *)room {
+    NSString *iconName = room[@"icon"];
+    UIImage *icon = [iconName isKindOfClass:NSString.class] && iconName.length > 0 ? [UIImage imageNamed:iconName] : nil;
+    return icon ?: self.skiThumbnail ?: [UIImage imageNamed:@"explore_mountain_header"];
 }
 
 - (UIImage *)thumbnailForVideoNamed:(NSString *)videoName {

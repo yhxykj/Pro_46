@@ -32,6 +32,7 @@
     [self setupViews];
     [self setupConstraints];
     [self setupActions];
+    [self setupDismissKeyboardGesture];
 }
 
 - (void)setupViews {
@@ -106,6 +107,12 @@
 
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapBottom:)];
     [self.bottomLabel addGestureRecognizer:tap];
+}
+
+- (void)setupDismissKeyboardGesture {
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    tap.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:tap];
 }
 
 - (void)setupConstraints {
@@ -219,8 +226,13 @@
     }
 }
 
+- (void)dismissKeyboard {
+    [self.view endEditing:YES];
+}
+
 - (void)navigateToHome {
-    [UserSession saveLoginState];
+    NSString *email = [self.emailField.textField.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    [UserSession saveLoginStateWithEmail:email];
     MainTabBarController *tabBar = [[MainTabBarController alloc] init];
     tabBar.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:tabBar animated:YES completion:nil];

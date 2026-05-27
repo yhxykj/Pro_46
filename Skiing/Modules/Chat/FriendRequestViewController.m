@@ -6,6 +6,8 @@
 #import "FriendRequestViewController.h"
 #import "EmptyStateView.h"
 #import "DesignTokens.h"
+#import "FriendshipStore.h"
+#import "UserSession.h"
 
 static CGFloat const kFriendRequestSidePadding = 16.0;
 static CGFloat const kFriendRequestCardHeight = 82.0;
@@ -13,6 +15,7 @@ static CGFloat const kFriendRequestRowHeight = 97.0;
 static NSString * const kFriendRequestCellIdentifier = @"FriendRequestCell";
 static NSString * const kIncomingFriendRequestsDefaultsKey = @"kIncomingFriendRequestsDefaultsKey";
 static NSString * const kIncomingFriendRequestsSeededDefaultsKey = @"kIncomingFriendRequestsSeededV1";
+static NSString * const kFriendRequestTestAccountEmail = @"skiing666@gmail.com";
 
 @interface FriendRequestCell : UITableViewCell
 @property (nonatomic, strong) UIButton *acceptButton;
@@ -168,6 +171,10 @@ static NSString * const kIncomingFriendRequestsSeededDefaultsKey = @"kIncomingFr
         return;
     }
 
+    NSDictionary<NSString *, NSString *> *request = self.requests[row];
+    [FriendshipStore addFriendWithName:request[@"name"] ?: @""
+                                handle:request[@"handle"] ?: @""
+                                avatar:request[@"avatar"] ?: @""];
     [self.requests removeObjectAtIndex:row];
     [self persistIncomingFriendRequests:self.requests];
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:row inSection:0];
@@ -181,18 +188,22 @@ static NSString * const kIncomingFriendRequestsSeededDefaultsKey = @"kIncomingFr
 
 - (NSArray<NSDictionary<NSString *, NSString *> *> *)incomingFriendRequests {
     [self seedIncomingFriendRequestsIfNeeded];
-    NSArray *storedRequests = [NSUserDefaults.standardUserDefaults objectForKey:kIncomingFriendRequestsDefaultsKey];
+    NSArray *storedRequests = [NSUserDefaults.standardUserDefaults objectForKey:[self incomingFriendRequestsDefaultsKey]];
     return [self sanitizedRequestsFromObject:storedRequests];
 }
 
 - (void)seedIncomingFriendRequestsIfNeeded {
-    if ([NSUserDefaults.standardUserDefaults boolForKey:kIncomingFriendRequestsSeededDefaultsKey]) {
+    if (![self isTestAccount]) {
+        return;
+    }
+
+    if ([NSUserDefaults.standardUserDefaults boolForKey:[self incomingFriendRequestsSeededDefaultsKey]]) {
         return;
     }
 
     NSArray<NSDictionary<NSString *, NSString *> *> *requests = [self presetIncomingFriendRequests];
-    [NSUserDefaults.standardUserDefaults setObject:requests forKey:kIncomingFriendRequestsDefaultsKey];
-    [NSUserDefaults.standardUserDefaults setBool:YES forKey:kIncomingFriendRequestsSeededDefaultsKey];
+    [NSUserDefaults.standardUserDefaults setObject:requests forKey:[self incomingFriendRequestsDefaultsKey]];
+    [NSUserDefaults.standardUserDefaults setBool:YES forKey:[self incomingFriendRequestsSeededDefaultsKey]];
     [NSUserDefaults.standardUserDefaults synchronize];
 }
 
@@ -204,8 +215,35 @@ static NSString * const kIncomingFriendRequestsSeededDefaultsKey = @"kIncomingFr
 
 - (void)persistIncomingFriendRequests:(NSArray<NSDictionary<NSString *, NSString *> *> *)requests {
     NSArray<NSDictionary<NSString *, NSString *> *> *sanitizedRequests = [self sanitizedRequestsFromObject:requests];
-    [NSUserDefaults.standardUserDefaults setObject:sanitizedRequests forKey:kIncomingFriendRequestsDefaultsKey];
+    [NSUserDefaults.standardUserDefaults setObject:sanitizedRequests forKey:[self incomingFriendRequestsDefaultsKey]];
     [NSUserDefaults.standardUserDefaults synchronize];
+}
+
+- (BOOL)isTestAccount {
+    return [[[UserSession currentEmail] lowercaseString] isEqualToString:kFriendRequestTestAccountEmail];
+}
+
+- (NSString *)incomingFriendRequestsDefaultsKey {
+    return [NSString stringWithFormat:@"%@.%@", kIncomingFriendRequestsDefaultsKey, [self accountSuffix]];
+}
+
+- (NSString *)incomingFriendRequestsSeededDefaultsKey {
+    return [NSString stringWithFormat:@"%@.%@", kIncomingFriendRequestsSeededDefaultsKey, [self accountSuffix]];
+}
+
+- (NSString *)accountSuffix {
+    NSString *email = [[UserSession currentEmail] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString;
+    if (email.length == 0) {
+        return @"anonymous";
+    }
+
+    NSMutableString *suffix = [NSMutableString string];
+    NSCharacterSet *allowedCharacters = NSCharacterSet.alphanumericCharacterSet;
+    for (NSUInteger index = 0; index < email.length; index++) {
+        unichar character = [email characterAtIndex:index];
+        [suffix appendString:[allowedCharacters characterIsMember:character] ? [NSString stringWithFormat:@"%C", character] : @"_"];
+    }
+    return suffix.length > 0 ? suffix : @"anonymous";
 }
 
 - (NSArray<NSDictionary<NSString *, NSString *> *> *)sanitizedRequestsFromObject:(id)object {

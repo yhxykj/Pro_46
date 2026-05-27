@@ -8,6 +8,8 @@
 #import "EmptyStateView.h"
 #import "DesignTokens.h"
 #import "UserModerationStore.h"
+#import "FriendshipStore.h"
+#import "UserSession.h"
 
 static CGFloat const kRelationshipCellCardHeight = 68.0;
 static CGFloat const kRelationshipCellRowHeight = 80.0;
@@ -16,6 +18,7 @@ static NSString * const kProfileRelationshipFollowStoreFileName = @"followed_use
 static NSString * const kProfileRelationshipBlockedUsersDefaultsKey = @"kUserProfileBlockedUsersDefaultsKey";
 static NSString * const kProfileRelationshipBlockStoreFileName = @"blocked_users.json";
 static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfileRelationshipPresetSeededV1";
+static NSString * const kProfileRelationshipTestAccountEmail = @"skiing666@gmail.com";
 
 @interface ProfileRelationshipListCell : UITableViewCell
 @property (nonatomic, strong) UIView *cardView;
@@ -35,6 +38,7 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
 @property (nonatomic, strong) EmptyStateView *emptyStateView;
 @property (nonatomic, strong) NSMutableArray<NSString *> *itemIDs;
 @property (nonatomic, strong) NSMutableArray<NSString *> *names;
+@property (nonatomic, strong) NSMutableArray<NSString *> *handles;
 @property (nonatomic, strong) NSMutableArray<NSString *> *avatarNames;
 @end
 
@@ -51,6 +55,7 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
         _mode = mode;
         _itemIDs = [NSMutableArray array];
         _names = [NSMutableArray array];
+        _handles = [NSMutableArray array];
         _avatarNames = [NSMutableArray array];
         [self loadRelationshipItems];
     }
@@ -159,22 +164,28 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
 - (void)loadRelationshipItems {
     [self.itemIDs removeAllObjects];
     [self.names removeAllObjects];
+    [self.handles removeAllObjects];
     [self.avatarNames removeAllObjects];
 
     NSArray<NSDictionary *> *items = [self relationshipItems];
     for (NSDictionary *item in items) {
         NSString *identity = item[@"id"];
         NSString *name = item[@"name"];
+        NSString *handle = item[@"handle"];
         NSString *avatar = item[@"avatar"];
         if (![name isKindOfClass:NSString.class] || name.length == 0 ||
             ![avatar isKindOfClass:NSString.class] || avatar.length == 0) {
             continue;
         }
+        if (![handle isKindOfClass:NSString.class]) {
+            handle = @"";
+        }
         if (![identity isKindOfClass:NSString.class] || identity.length == 0) {
-            identity = [self followIdentityForName:name handle:item[@"handle"] avatar:avatar];
+            identity = [self followIdentityForName:name handle:handle avatar:avatar];
         }
         [self.itemIDs addObject:identity];
         [self.names addObject:name];
+        [self.handles addObject:handle];
         [self.avatarNames addObject:avatar];
     }
 }
@@ -196,10 +207,10 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
         return [self followedUserItemsForCount];
     }
     if ([title isEqualToString:@"Followers"]) {
-        return [self presetFollowerItems];
+        return [self isTestAccount] ? [self presetFollowerItems] : @[];
     }
     if ([title isEqualToString:@"Friends"]) {
-        return [self presetFriendItems];
+        return [FriendshipStore friends];
     }
 
     return @[];
@@ -230,13 +241,17 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
 }
 
 + (void)seedRelationshipPresetsIfNeeded {
-    if ([NSUserDefaults.standardUserDefaults boolForKey:kProfileRelationshipPresetSeededDefaultsKey]) {
+    if (![self isTestAccount]) {
+        return;
+    }
+
+    if ([NSUserDefaults.standardUserDefaults boolForKey:[self presetSeededDefaultsKey]]) {
         return;
     }
 
     NSArray<NSDictionary *> *followingItems = [self presetFollowingItems];
-    [NSUserDefaults.standardUserDefaults setObject:followingItems forKey:kProfileRelationshipFollowedUsersDefaultsKey];
-    [NSUserDefaults.standardUserDefaults setBool:YES forKey:kProfileRelationshipPresetSeededDefaultsKey];
+    [NSUserDefaults.standardUserDefaults setObject:followingItems forKey:[self followedUsersDefaultsKey]];
+    [NSUserDefaults.standardUserDefaults setBool:YES forKey:[self presetSeededDefaultsKey]];
     [NSUserDefaults.standardUserDefaults synchronize];
     [self writeFollowedUsersForCountToDisk:followingItems];
 }
@@ -244,17 +259,17 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
 + (NSArray<NSDictionary *> *)followedUserItemsForCount {
     [self seedRelationshipPresetsIfNeeded];
 
-    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:kProfileRelationshipFollowedUsersDefaultsKey];
+    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:[self followedUsersDefaultsKey]];
     NSArray<NSDictionary *> *users = [self sanitizedFollowedUsersForCountFromObject:storedUsers];
     if (users.count > 0) {
-        [NSUserDefaults.standardUserDefaults setObject:users forKey:kProfileRelationshipFollowedUsersDefaultsKey];
+        [NSUserDefaults.standardUserDefaults setObject:users forKey:[self followedUsersDefaultsKey]];
         [NSUserDefaults.standardUserDefaults synchronize];
         return users;
     }
 
     users = [self readFollowedUsersForCountFromDisk];
     if (users.count > 0) {
-        [NSUserDefaults.standardUserDefaults setObject:users forKey:kProfileRelationshipFollowedUsersDefaultsKey];
+        [NSUserDefaults.standardUserDefaults setObject:users forKey:[self followedUsersDefaultsKey]];
         [NSUserDefaults.standardUserDefaults synchronize];
     }
     return users;
@@ -313,7 +328,7 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
     NSURL *applicationSupportURL = [NSFileManager.defaultManager URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask].firstObject;
     NSURL *directoryURL = [applicationSupportURL URLByAppendingPathComponent:@"Profile" isDirectory:YES];
     [NSFileManager.defaultManager createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:nil];
-    return [directoryURL URLByAppendingPathComponent:kProfileRelationshipFollowStoreFileName];
+    return [directoryURL URLByAppendingPathComponent:[self followStoreFileName]];
 }
 
 + (NSArray<NSDictionary *> *)readFollowedUsersForCountFromDisk {
@@ -335,6 +350,37 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
     [data writeToURL:[self followStoreFileURLForCount] atomically:YES];
 }
 
++ (BOOL)isTestAccount {
+    return [[[UserSession currentEmail] lowercaseString] isEqualToString:kProfileRelationshipTestAccountEmail];
+}
+
++ (NSString *)accountSuffix {
+    NSString *email = [[UserSession currentEmail] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString;
+    if (email.length == 0) {
+        return @"anonymous";
+    }
+
+    NSMutableString *suffix = [NSMutableString string];
+    NSCharacterSet *allowedCharacters = NSCharacterSet.alphanumericCharacterSet;
+    for (NSUInteger index = 0; index < email.length; index++) {
+        unichar character = [email characterAtIndex:index];
+        [suffix appendString:[allowedCharacters characterIsMember:character] ? [NSString stringWithFormat:@"%C", character] : @"_"];
+    }
+    return suffix.length > 0 ? suffix : @"anonymous";
+}
+
++ (NSString *)followedUsersDefaultsKey {
+    return [NSString stringWithFormat:@"%@.%@", kProfileRelationshipFollowedUsersDefaultsKey, [self accountSuffix]];
+}
+
++ (NSString *)presetSeededDefaultsKey {
+    return [NSString stringWithFormat:@"%@.%@", kProfileRelationshipPresetSeededDefaultsKey, [self accountSuffix]];
+}
+
++ (NSString *)followStoreFileName {
+    return [NSString stringWithFormat:@"%@_%@", [self accountSuffix], kProfileRelationshipFollowStoreFileName];
+}
+
 - (BOOL)shouldUseFollowedUsers {
     return self.mode == ProfileRelationshipListModeMessage && [self.relationshipTitle isEqualToString:@"Following"];
 }
@@ -354,15 +400,15 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
 }
 
 - (NSArray<NSDictionary *> *)followedUserItems {
-    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:kProfileRelationshipFollowedUsersDefaultsKey];
+    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:[ProfileRelationshipListViewController followedUsersDefaultsKey]];
     NSArray<NSDictionary *> *users = [self sanitizedFollowedUsersFromObject:storedUsers];
     if (users.count > 0) {
-        [NSUserDefaults.standardUserDefaults setObject:users forKey:kProfileRelationshipFollowedUsersDefaultsKey];
+        [NSUserDefaults.standardUserDefaults setObject:users forKey:[ProfileRelationshipListViewController followedUsersDefaultsKey]];
         [NSUserDefaults.standardUserDefaults synchronize];
     } else {
         users = [self readFollowedUsersFromDisk];
         if (users.count > 0) {
-            [NSUserDefaults.standardUserDefaults setObject:users forKey:kProfileRelationshipFollowedUsersDefaultsKey];
+            [NSUserDefaults.standardUserDefaults setObject:users forKey:[ProfileRelationshipListViewController followedUsersDefaultsKey]];
             [NSUserDefaults.standardUserDefaults synchronize];
         }
     }
@@ -427,7 +473,7 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
     NSURL *applicationSupportURL = [NSFileManager.defaultManager URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask].firstObject;
     NSURL *directoryURL = [applicationSupportURL URLByAppendingPathComponent:@"Profile" isDirectory:YES];
     [NSFileManager.defaultManager createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:nil];
-    return [directoryURL URLByAppendingPathComponent:kProfileRelationshipFollowStoreFileName];
+    return [directoryURL URLByAppendingPathComponent:[ProfileRelationshipListViewController followStoreFileName]];
 }
 
 - (NSArray<NSDictionary *> *)readFollowedUsersFromDisk {
@@ -479,7 +525,8 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
                        mode:self.mode];
     [cell.actionButton removeTarget:nil action:NULL forControlEvents:UIControlEventTouchUpInside];
     if (self.mode == ProfileRelationshipListModeMessage) {
-        [cell.actionButton addTarget:self action:@selector(didTapMessageButton) forControlEvents:UIControlEventTouchUpInside];
+        cell.actionButton.tag = indexPath.row;
+        [cell.actionButton addTarget:self action:@selector(didTapMessageButton:) forControlEvents:UIControlEventTouchUpInside];
     } else if (self.mode == ProfileRelationshipListModeBlacklist) {
         cell.actionButton.tag = indexPath.row;
         [cell.actionButton addTarget:self action:@selector(didTapRemoveButton:) forControlEvents:UIControlEventTouchUpInside];
@@ -498,8 +545,16 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (void)didTapMessageButton {
+- (void)didTapMessageButton:(UIButton *)button {
+    NSInteger row = button.tag;
+    if (row < 0 || row >= self.names.count || row >= self.handles.count || row >= self.avatarNames.count) {
+        return;
+    }
+
     FriendChatViewController *chatViewController = [[FriendChatViewController alloc] init];
+    chatViewController.chatTitle = self.names[row];
+    chatViewController.peerHandle = self.handles[row];
+    chatViewController.peerAvatarName = self.avatarNames[row];
     chatViewController.hidesBottomBarWhenPushed = YES;
 
     if (self.navigationController) {
@@ -513,7 +568,7 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
 
 - (void)didTapRemoveButton:(UIButton *)button {
     NSInteger row = button.tag;
-    if (row < 0 || row >= self.itemIDs.count || row >= self.names.count || row >= self.avatarNames.count) {
+    if (row < 0 || row >= self.itemIDs.count || row >= self.names.count || row >= self.handles.count || row >= self.avatarNames.count) {
         return;
     }
 
@@ -524,6 +579,7 @@ static NSString * const kProfileRelationshipPresetSeededDefaultsKey = @"kProfile
 
     [self.itemIDs removeObjectAtIndex:row];
     [self.names removeObjectAtIndex:row];
+    [self.handles removeObjectAtIndex:row];
     [self.avatarNames removeObjectAtIndex:row];
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:row inSection:0];
     [self.tableView performBatchUpdates:^{

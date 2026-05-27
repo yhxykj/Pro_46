@@ -27,6 +27,7 @@
 @property (nonatomic, strong) UIButton      *removeMediaButton; // ic_remove_media
 
 // 文本输入框
+@property (nonatomic, strong) UIView        *textContainerView;
 @property (nonatomic, strong) UITextView    *textView;
 @property (nonatomic, strong) UILabel       *placeholderLabel;
 
@@ -52,12 +53,22 @@
     [self setupMediaArea];
     [self setupTextView];
     [self setupPostButton];
+    [self setupKeyboardHandling];
     [self updateMediaState];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES animated:NO];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.view endEditing:YES];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - Setup
@@ -165,6 +176,7 @@
     textContainer.clipsToBounds = YES;
     textContainer.translatesAutoresizingMaskIntoConstraints = NO;
     [self.view addSubview:textContainer];
+    self.textContainerView = textContainer;
 
     self.textView = [[UITextView alloc] init];
     self.textView.font = [DesignFonts regular:14];
@@ -213,6 +225,15 @@
     ]];
 }
 
+- (void)setupKeyboardHandling {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    tap.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:tap];
+}
+
 #pragma mark - State
 
 - (void)updateMediaState {
@@ -223,6 +244,7 @@
 #pragma mark - Actions
 
 - (void)didTapBack {
+    [self.view endEditing:YES];
     [self.navigationController popViewControllerAnimated:YES];
 }
 
@@ -244,6 +266,8 @@
 }
 
 - (void)didTapPost {
+    [self.view endEditing:YES];
+
     NSString *error = [self validatePostInputs];
     if (error) {
         [self showError:error];
@@ -373,6 +397,33 @@
         self.successDialogView = nil;
         [self.navigationController popViewControllerAnimated:YES];
     }];
+}
+
+#pragma mark - Keyboard
+
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    CGRect keyboardFrame = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGRect keyboardFrameInView = [self.view convertRect:keyboardFrame fromView:nil];
+    CGRect inputFrameInView = [self.textContainerView convertRect:self.textContainerView.bounds toView:self.view];
+    CGFloat overlap = MAX(0.0, CGRectGetMaxY(inputFrameInView) + 12.0 - CGRectGetMinY(keyboardFrameInView));
+
+    [self animateKeyboardLayoutWithNotification:notification transform:CGAffineTransformMakeTranslation(0.0, -overlap)];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    [self animateKeyboardLayoutWithNotification:notification transform:CGAffineTransformIdentity];
+}
+
+- (void)animateKeyboardLayoutWithNotification:(NSNotification *)notification transform:(CGAffineTransform)transform {
+    NSTimeInterval duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions options = ([notification.userInfo[UIKeyboardAnimationCurveUserInfoKey] integerValue] << 16);
+    [UIView animateWithDuration:duration delay:0.0 options:options animations:^{
+        self.view.transform = transform;
+    } completion:nil];
+}
+
+- (void)dismissKeyboard {
+    [self.view endEditing:YES];
 }
 
 #pragma mark - PHPickerViewControllerDelegate

@@ -246,11 +246,11 @@
 }
 
 - (NSString *)resolvedUsername {
-    return self.username.length > 0 ? self.username : @"Gaston";
+    return self.username.length > 0 ? self.username : @"GardenDream";
 }
 
 - (NSString *)resolvedAvatarName {
-    return self.avatarName.length > 0 ? self.avatarName : @"avatar_user_01";
+    return self.avatarName.length > 0 ? self.avatarName : @"avatar_user_12";
 }
 
 - (NSString *)resolvedDescription {

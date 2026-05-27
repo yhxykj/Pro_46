@@ -11,6 +11,7 @@
 #import "DesignTokens.h"
 #import "UserModerationStore.h"
 #import "FriendRequestStore.h"
+#import "UserSession.h"
 #import <AVFoundation/AVFoundation.h>
 
 static CGFloat const kUserProfileSidePadding = 16.0;
@@ -652,22 +653,22 @@ static NSString * const kUserProfileBlockStoreFileName = @"blocked_users.json";
                            @"avatar": avatar}];
     }
 
-    [NSUserDefaults.standardUserDefaults setObject:users forKey:kUserProfileFollowedUsersDefaultsKey];
+    [NSUserDefaults.standardUserDefaults setObject:users forKey:[self followedUsersDefaultsKey]];
     [NSUserDefaults.standardUserDefaults synchronize];
     [self writeFollowedUsersToDisk:users];
 }
 
 - (NSArray<NSDictionary *> *)followedUsers {
-    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:kUserProfileFollowedUsersDefaultsKey];
+    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:[self followedUsersDefaultsKey]];
     NSArray<NSDictionary *> *users = [self sanitizedFollowedUsersFromObject:storedUsers];
     if (users.count > 0) {
-        [NSUserDefaults.standardUserDefaults setObject:users forKey:kUserProfileFollowedUsersDefaultsKey];
+        [NSUserDefaults.standardUserDefaults setObject:users forKey:[self followedUsersDefaultsKey]];
         [NSUserDefaults.standardUserDefaults synchronize];
         [self writeFollowedUsersToDisk:users];
     } else {
         users = [self readFollowedUsersFromDisk];
         if (users.count > 0) {
-            [NSUserDefaults.standardUserDefaults setObject:users forKey:kUserProfileFollowedUsersDefaultsKey];
+            [NSUserDefaults.standardUserDefaults setObject:users forKey:[self followedUsersDefaultsKey]];
             [NSUserDefaults.standardUserDefaults synchronize];
         }
     }
@@ -738,7 +739,30 @@ static NSString * const kUserProfileBlockStoreFileName = @"blocked_users.json";
     NSURL *applicationSupportURL = [NSFileManager.defaultManager URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask].firstObject;
     NSURL *directoryURL = [applicationSupportURL URLByAppendingPathComponent:@"Profile" isDirectory:YES];
     [NSFileManager.defaultManager createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:nil];
-    return [directoryURL URLByAppendingPathComponent:kUserProfileFollowStoreFileName];
+    return [directoryURL URLByAppendingPathComponent:[self followStoreFileName]];
+}
+
+- (NSString *)followedUsersDefaultsKey {
+    return [NSString stringWithFormat:@"%@.%@", kUserProfileFollowedUsersDefaultsKey, [self accountSuffix]];
+}
+
+- (NSString *)followStoreFileName {
+    return [NSString stringWithFormat:@"%@_%@", [self accountSuffix], kUserProfileFollowStoreFileName];
+}
+
+- (NSString *)accountSuffix {
+    NSString *email = [[UserSession currentEmail] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString;
+    if (email.length == 0) {
+        return @"anonymous";
+    }
+
+    NSMutableString *suffix = [NSMutableString string];
+    NSCharacterSet *allowedCharacters = NSCharacterSet.alphanumericCharacterSet;
+    for (NSUInteger index = 0; index < email.length; index++) {
+        unichar character = [email characterAtIndex:index];
+        [suffix appendString:[allowedCharacters characterIsMember:character] ? [NSString stringWithFormat:@"%C", character] : @"_"];
+    }
+    return suffix.length > 0 ? suffix : @"anonymous";
 }
 
 - (NSArray<NSDictionary *> *)readFollowedUsersFromDisk {

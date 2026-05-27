@@ -10,6 +10,8 @@
 #import "UserSession.h"
 #import "UserAccountStore.h"
 
+static NSString * const kProfileDisplayNameDefaultsKey = @"kProfileDisplayNameDefaultsKey";
+
 @interface CreateAccountViewController ()
 @property (nonatomic, strong) UIImageView *backgroundImageView;
 @property (nonatomic, strong) UIButton    *backButton;
@@ -30,6 +32,7 @@
     [self setupViews];
     [self setupConstraints];
     [self setupActions];
+    [self setupDismissKeyboardGesture];
 }
 
 - (void)setupViews {
@@ -109,6 +112,12 @@
 
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapBottom:)];
     [self.bottomLabel addGestureRecognizer:tap];
+}
+
+- (void)setupDismissKeyboardGesture {
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    tap.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:tap];
 }
 
 - (void)setupConstraints {
@@ -227,11 +236,13 @@
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self setLoading:NO];
         NSString *errorMessage = nil;
-        if (![UserAccountStore saveAccountWithEmail:self.email ?: @""
-                                           password:self.password ?: @""
-                                       errorMessage:&errorMessage]) {
-            [self showError:errorMessage ?: @"Unable to create account."];
-            return;
+        if (![UserAccountStore validateEmail:self.email ?: @"" password:self.password ?: @""]) {
+            if (![UserAccountStore saveAccountWithEmail:self.email ?: @""
+                                               password:self.password ?: @""
+                                           errorMessage:&errorMessage]) {
+                [self showError:errorMessage ?: @"Unable to create account."];
+                return;
+            }
         }
 
         [self navigateToHome];
@@ -244,11 +255,29 @@
     }
 }
 
+- (void)dismissKeyboard {
+    [self.view endEditing:YES];
+}
+
 - (void)navigateToHome {
-    [UserSession saveLoginState];
+    NSString *username = [self.usernameField.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (username.length > 0) {
+        [NSUserDefaults.standardUserDefaults setObject:username forKey:[self profileDisplayNameDefaultsKey]];
+        [NSUserDefaults.standardUserDefaults synchronize];
+    }
+    [UserSession saveLoginStateWithEmail:self.email ?: @""];
     MainTabBarController *tabBar = [[MainTabBarController alloc] init];
     tabBar.modalPresentationStyle = UIModalPresentationFullScreen;
     [self presentViewController:tabBar animated:YES completion:nil];
+}
+
+- (NSString *)profileDisplayNameDefaultsKey {
+    NSString *email = [self.email stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString;
+    if (email.length == 0) {
+        return kProfileDisplayNameDefaultsKey;
+    }
+
+    return [NSString stringWithFormat:@"%@.%@", kProfileDisplayNameDefaultsKey, email];
 }
 
 #pragma mark - UIImagePickerControllerDelegate

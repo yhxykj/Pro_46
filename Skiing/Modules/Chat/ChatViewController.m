@@ -13,6 +13,7 @@ static NSString * const kChatMessageCellIdentifier = @"ChatMessageCell";
 static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDefaultsPrefix.";
 
 @interface ChatMessageCell : UITableViewCell
+@property (nonatomic, strong) UIButton *reportButton;
 - (void)configureWithText:(NSString *)text incoming:(BOOL)incoming avatarName:(NSString *)avatarName;
 @end
 
@@ -21,7 +22,6 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
 @property (nonatomic, strong) UIView *bubbleView;
 @property (nonatomic, strong) UILabel *messageLabel;
 @property (nonatomic, strong) UILabel *timeLabel;
-@property (nonatomic, assign) BOOL incoming;
 @property (nonatomic, strong) NSLayoutConstraint *bubbleWidthConstraint;
 @property (nonatomic, copy) NSArray<NSLayoutConstraint *> *incomingConstraints;
 @property (nonatomic, copy) NSArray<NSLayoutConstraint *> *outgoingConstraints;
@@ -59,21 +59,31 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
         self.timeLabel.textColor = [UIColor colorWithRed:0.27 green:0.27 blue:0.35 alpha:1.0];
         self.timeLabel.translatesAutoresizingMaskIntoConstraints = NO;
 
+        self.reportButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        self.reportButton.titleLabel.font = [DesignFonts semibold:12];
+        [self.reportButton setTitle:@"Report" forState:UIControlStateNormal];
+        [self.reportButton setTitleColor:[UIColor colorWithRed:0.18 green:0.36 blue:0.82 alpha:1.0] forState:UIControlStateNormal];
+        self.reportButton.translatesAutoresizingMaskIntoConstraints = NO;
+
         [self.contentView addSubview:self.avatarImageView];
         [self.contentView addSubview:self.bubbleView];
         [self.bubbleView addSubview:self.messageLabel];
         [self.contentView addSubview:self.timeLabel];
+        [self.contentView addSubview:self.reportButton];
 
         self.bubbleWidthConstraint = [self.bubbleView.widthAnchor constraintEqualToConstant:242.0];
         self.incomingConstraints = @[
             [self.avatarImageView.leadingAnchor constraintEqualToAnchor:self.contentView.leadingAnchor constant:16.0],
             [self.bubbleView.leadingAnchor constraintEqualToAnchor:self.avatarImageView.trailingAnchor constant:10.0],
             [self.timeLabel.leadingAnchor constraintEqualToAnchor:self.bubbleView.leadingAnchor],
+            [self.reportButton.leadingAnchor constraintEqualToAnchor:self.timeLabel.trailingAnchor constant:12.0],
+            [self.reportButton.trailingAnchor constraintLessThanOrEqualToAnchor:self.contentView.trailingAnchor constant:-16.0],
         ];
         self.outgoingConstraints = @[
             [self.avatarImageView.trailingAnchor constraintEqualToAnchor:self.contentView.trailingAnchor constant:-16.0],
             [self.bubbleView.trailingAnchor constraintEqualToAnchor:self.avatarImageView.leadingAnchor constant:-12.0],
-            [self.timeLabel.trailingAnchor constraintEqualToAnchor:self.bubbleView.trailingAnchor],
+            [self.reportButton.trailingAnchor constraintEqualToAnchor:self.bubbleView.trailingAnchor],
+            [self.timeLabel.trailingAnchor constraintEqualToAnchor:self.reportButton.leadingAnchor constant:-12.0],
         ];
 
         [NSLayoutConstraint activateConstraints:@[
@@ -91,6 +101,8 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
             [self.messageLabel.bottomAnchor constraintEqualToAnchor:self.bubbleView.bottomAnchor constant:-16.0],
 
             [self.timeLabel.topAnchor constraintEqualToAnchor:self.bubbleView.bottomAnchor constant:8.0],
+            [self.reportButton.centerYAnchor constraintEqualToAnchor:self.timeLabel.centerYAnchor],
+            [self.reportButton.heightAnchor constraintEqualToConstant:28.0],
             [self.timeLabel.bottomAnchor constraintEqualToAnchor:self.contentView.bottomAnchor constant:-18.0],
         ]];
         [NSLayoutConstraint activateConstraints:self.incomingConstraints];
@@ -99,7 +111,6 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
 }
 
 - (void)configureWithText:(NSString *)text incoming:(BOOL)incoming avatarName:(NSString *)avatarName {
-    self.incoming = incoming;
     self.messageLabel.text = text;
     self.avatarImageView.image = [UIImage imageNamed:avatarName];
     self.bubbleView.backgroundColor = incoming ? UIColor.whiteColor : [UIColor colorWithRed:0.59 green:0.90 blue:0.68 alpha:1.0];
@@ -114,10 +125,12 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
 @property (nonatomic, strong) CAGradientLayer *backgroundGradient;
 @property (nonatomic, strong) UIImage *roomImage;
 @property (nonatomic, strong) UIView *roomCard;
+@property (nonatomic, strong) UIView *communityReminderView;
 @property (nonatomic, strong) UIView *inputBar;
 @property (nonatomic, strong) UITextField *messageInputField;
 @property (nonatomic, strong) UITableView *messageTableView;
 @property (nonatomic, strong) NSMutableArray<NSDictionary *> *messages;
+@property (nonatomic, strong) NSLayoutConstraint *inputBarBottomConstraint;
 @end
 
 @implementation ChatViewController
@@ -129,13 +142,24 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     [self setupBackground];
     [self setupHeaderButtons];
     [self setupRoomCard];
+    [self setupCommunityReminder];
     [self setupInputBar];
     [self setupMessages];
+    [self setupKeyboardHandling];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES animated:NO];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.view endEditing:YES];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)viewDidLayoutSubviews {
@@ -171,6 +195,7 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     [moreButton setImage:[UIImage imageNamed:@"chat_more_button"] forState:UIControlStateNormal];
     moreButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
     moreButton.translatesAutoresizingMaskIntoConstraints = NO;
+    [moreButton addTarget:self action:@selector(didTapMoreButton:) forControlEvents:UIControlEventTouchUpInside];
 
     [self.view addSubview:backButton];
     [self.view addSubview:moreButton];
@@ -252,6 +277,54 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     ]];
 }
 
+- (void)setupCommunityReminder {
+    UIView *reminderView = [[UIView alloc] init];
+    reminderView.backgroundColor = [UIColor colorWithRed:0.91 green:0.95 blue:1.0 alpha:0.78];
+    reminderView.layer.cornerRadius = 14.0;
+    reminderView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.communityReminderView = reminderView;
+
+    UIImage *iconImage = [[UIImage systemImageNamed:@"shield.lefthalf.filled"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    UIImageView *iconView = [[UIImageView alloc] initWithImage:iconImage];
+    iconView.tintColor = [UIColor colorWithRed:0.12 green:0.45 blue:0.88 alpha:1.0];
+    iconView.contentMode = UIViewContentModeScaleAspectFit;
+    iconView.translatesAutoresizingMaskIntoConstraints = NO;
+
+    UILabel *titleLabel = [self labelWithText:@"Community Reminder"
+                                         font:[DesignFonts semibold:13]
+                                        color:[UIColor colorWithRed:0.10 green:0.24 blue:0.42 alpha:1.0]];
+
+    UILabel *messageLabel = [self labelWithText:@"Keep chats kind and ski-focused. Do not share private info, and report anything unsafe."
+                                           font:[DesignFonts regular:12]
+                                          color:[UIColor colorWithRed:0.25 green:0.30 blue:0.40 alpha:1.0]];
+    messageLabel.numberOfLines = 0;
+
+    [self.view addSubview:reminderView];
+    [reminderView addSubview:iconView];
+    [reminderView addSubview:titleLabel];
+    [reminderView addSubview:messageLabel];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [reminderView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kChatSidePadding],
+        [reminderView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-kChatSidePadding],
+        [reminderView.topAnchor constraintEqualToAnchor:self.roomCard.bottomAnchor constant:12],
+
+        [iconView.leadingAnchor constraintEqualToAnchor:reminderView.leadingAnchor constant:14],
+        [iconView.topAnchor constraintEqualToAnchor:reminderView.topAnchor constant:15],
+        [iconView.widthAnchor constraintEqualToConstant:18],
+        [iconView.heightAnchor constraintEqualToConstant:18],
+
+        [titleLabel.leadingAnchor constraintEqualToAnchor:iconView.trailingAnchor constant:9],
+        [titleLabel.topAnchor constraintEqualToAnchor:reminderView.topAnchor constant:12],
+        [titleLabel.trailingAnchor constraintEqualToAnchor:reminderView.trailingAnchor constant:-14],
+
+        [messageLabel.leadingAnchor constraintEqualToAnchor:titleLabel.leadingAnchor],
+        [messageLabel.trailingAnchor constraintEqualToAnchor:titleLabel.trailingAnchor],
+        [messageLabel.topAnchor constraintEqualToAnchor:titleLabel.bottomAnchor constant:3],
+        [messageLabel.bottomAnchor constraintEqualToAnchor:reminderView.bottomAnchor constant:-12],
+    ]];
+}
+
 - (void)setupMessages {
     self.messages = [[self loadMessagesForCurrentRoom] mutableCopy];
 
@@ -259,6 +332,7 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     tableView.backgroundColor = UIColor.clearColor;
     tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     tableView.showsVerticalScrollIndicator = NO;
+    tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     tableView.dataSource = self;
     tableView.delegate = self;
@@ -270,7 +344,7 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     self.messageTableView = tableView;
 
     [NSLayoutConstraint activateConstraints:@[
-        [tableView.topAnchor constraintEqualToAnchor:self.roomCard.bottomAnchor constant:22],
+        [tableView.topAnchor constraintEqualToAnchor:self.communityReminderView.bottomAnchor constant:14],
         [tableView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [tableView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
         [tableView.bottomAnchor constraintEqualToAnchor:self.inputBar.topAnchor constant:-18],
@@ -307,10 +381,11 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     [inputBar addSubview:textField];
     [inputBar addSubview:sendButton];
 
+    self.inputBarBottomConstraint = [inputBar.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-10];
     [NSLayoutConstraint activateConstraints:@[
         [inputBar.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kChatSidePadding],
         [inputBar.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-kChatSidePadding],
-        [inputBar.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor constant:-10],
+        self.inputBarBottomConstraint,
         [inputBar.heightAnchor constraintEqualToConstant:55],
 
         [sendButton.trailingAnchor constraintEqualToAnchor:inputBar.trailingAnchor constant:-4],
@@ -325,6 +400,46 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     ]];
 }
 
+- (void)setupKeyboardHandling {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillChangeFrame:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    tap.cancelsTouchesInView = NO;
+    [self.messageTableView addGestureRecognizer:tap];
+}
+
+- (void)keyboardWillChangeFrame:(NSNotification *)notification {
+    CGRect keyboardFrame = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGRect keyboardFrameInView = [self.view convertRect:keyboardFrame fromView:nil];
+    CGFloat safeAreaBottomY = CGRectGetMaxY(self.view.safeAreaLayoutGuide.layoutFrame);
+    CGFloat keyboardOverlap = MAX(0.0, safeAreaBottomY - CGRectGetMinY(keyboardFrameInView));
+    self.inputBarBottomConstraint.constant = keyboardOverlap > 0.0 ? -(keyboardOverlap + 8.0) : -10.0;
+
+    [self animateKeyboardLayoutWithNotification:notification completion:^{
+        [self scrollToLatestMessageIfNeededAnimated:NO];
+    }];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    self.inputBarBottomConstraint.constant = -10.0;
+    [self animateKeyboardLayoutWithNotification:notification completion:nil];
+}
+
+- (void)animateKeyboardLayoutWithNotification:(NSNotification *)notification completion:(void (^)(void))completion {
+    NSTimeInterval duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions options = ([notification.userInfo[UIKeyboardAnimationCurveUserInfoKey] integerValue] << 16);
+    [UIView animateWithDuration:duration delay:0.0 options:options animations:^{
+        [self.view layoutIfNeeded];
+    } completion:^(BOOL finished) {
+        if (completion) completion();
+    }];
+}
+
+- (void)dismissKeyboard {
+    [self.view endEditing:YES];
+}
+
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -337,6 +452,9 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     BOOL incoming = [message[@"incoming"] boolValue];
     NSString *avatarName = [self avatarNameForMessage:message incoming:incoming index:indexPath.row];
     [cell configureWithText:message[@"text"] incoming:incoming avatarName:avatarName];
+    cell.reportButton.tag = indexPath.row;
+    [cell.reportButton removeTarget:nil action:NULL forControlEvents:UIControlEventTouchUpInside];
+    [cell.reportButton addTarget:self action:@selector(didTapReportMessageButton:) forControlEvents:UIControlEventTouchUpInside];
     return cell;
 }
 
@@ -363,13 +481,46 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     NSString *text = [self.messageInputField.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     if (text.length == 0) return;
 
-    [self.messages addObject:@{@"text": text, @"incoming": @NO, @"avatar": @"avatar_user_01"}];
+    [self.messages addObject:@{@"text": text, @"incoming": @NO, @"avatar": @"avatar_user_12"}];
     [self persistMessagesForCurrentRoom];
     self.messageInputField.text = nil;
 
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.messages.count - 1 inSection:0];
     [self.messageTableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationBottom];
     [self.messageTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+}
+
+- (void)didTapMoreButton:(UIButton *)sender {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+        [self showReportSubmittedAlert];
+    }]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+
+    alert.popoverPresentationController.sourceView = sender;
+    alert.popoverPresentationController.sourceRect = sender.bounds;
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)didTapReportMessageButton:(UIButton *)sender {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Report message?"
+                                                                   message:@"This message will be sent to the team for review."
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Report" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+        [self showReportSubmittedAlert];
+    }]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (void)showReportSubmittedAlert {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Report submitted"
+                                                                   message:@"Thanks for helping keep the community safe."
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)didTapBackButton {
@@ -422,10 +573,10 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
 }
 
 - (NSArray<NSDictionary *> *)defaultMessages {
+    NSString *roomName = [self resolvedRoomName];
     return @[
-        @{@"text": @"Hello, may I invite you to have\ndinner together?", @"incoming": @YES, @"avatar": @"avatar_user_11"},
-        @{@"text": @"Hello, may I invite you to have\ndinner together?", @"incoming": @NO, @"avatar": @"avatar_user_01"},
-        @{@"text": @"Hello, may I invite you to have\ndinner together?", @"incoming": @YES, @"avatar": @"avatar_user_12"},
+        @{@"text": [NSString stringWithFormat:@"Welcome to %@. Share mountain updates, plans, and helpful tips.", roomName], @"incoming": @YES, @"avatar": @"avatar_user_11"},
+        @{@"text": @"Anyone on the slopes today? Drop snow conditions, lift lines, or meetup plans here.", @"incoming": @YES, @"avatar": @"avatar_user_13"},
     ];
 }
 
@@ -433,7 +584,14 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     NSArray *storedMessages = [NSUserDefaults.standardUserDefaults objectForKey:[self messagesDefaultsKey]];
     NSArray<NSDictionary *> *validatedMessages = [self validatedMessagesFromArray:storedMessages];
     if (validatedMessages.count > 0) {
-        return validatedMessages;
+        NSArray<NSDictionary *> *visibleMessages = [self messagesByRemovingLegacyDefaultOutgoingMessages:validatedMessages];
+        if (visibleMessages.count != validatedMessages.count) {
+            [NSUserDefaults.standardUserDefaults setObject:visibleMessages forKey:[self messagesDefaultsKey]];
+            [NSUserDefaults.standardUserDefaults synchronize];
+        }
+        if (visibleMessages.count > 0) {
+            return visibleMessages;
+        }
     }
 
     NSArray<NSDictionary *> *messages = [self defaultMessages];
@@ -477,14 +635,27 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     return messages.copy;
 }
 
+- (NSArray<NSDictionary *> *)messagesByRemovingLegacyDefaultOutgoingMessages:(NSArray<NSDictionary *> *)messages {
+    NSMutableArray<NSDictionary *> *visibleMessages = [NSMutableArray arrayWithCapacity:messages.count];
+    for (NSDictionary *message in messages) {
+        NSString *text = message[@"text"];
+        BOOL incoming = [message[@"incoming"] boolValue];
+        BOOL isLegacyDefaultOutgoing = !incoming && [text isEqualToString:@"Hello, may I invite you to have\ndinner together?"];
+        if (!isLegacyDefaultOutgoing) {
+            [visibleMessages addObject:message];
+        }
+    }
+    return visibleMessages.copy;
+}
+
 - (NSString *)avatarNameForMessage:(NSDictionary *)message incoming:(BOOL)incoming index:(NSInteger)index {
     NSString *avatar = message[@"avatar"];
-    if ([avatar isKindOfClass:NSString.class] && avatar.length > 0) {
-        return avatar;
+    if (!incoming) {
+        return @"avatar_user_12";
     }
 
-    if (!incoming) {
-        return @"avatar_user_01";
+    if ([avatar isKindOfClass:NSString.class] && avatar.length > 0) {
+        return avatar;
     }
 
     NSArray<NSString *> *incomingAvatars = @[@"avatar_user_11", @"avatar_user_12", @"avatar_user_13"];
@@ -514,6 +685,15 @@ static NSString * const kChatRoomMessagesDefaultsPrefix = @"kChatRoomMessagesDef
     UIImage *image = [UIImage imageWithCGImage:imageRef];
     CGImageRelease(imageRef);
     return image;
+}
+
+- (void)scrollToLatestMessageIfNeededAnimated:(BOOL)animated {
+    if (self.messages.count == 0 || !self.messageTableView) {
+        return;
+    }
+
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.messages.count - 1 inSection:0];
+    [self.messageTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:animated];
 }
 
 @end

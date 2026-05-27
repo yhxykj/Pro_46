@@ -121,6 +121,10 @@ static const CGFloat kInputBarHeight   = 64.0;
 
 @implementation CommentPanelView
 
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (instancetype)init {
     return [self initWithVideoIdentifier:@"default"];
 }
@@ -166,9 +170,14 @@ static const CGFloat kInputBarHeight   = 64.0;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView.backgroundColor = UIColor.clearColor;
     self.tableView.showsVerticalScrollIndicator = NO;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     self.tableView.estimatedRowHeight = 68;
     self.tableView.rowHeight = UITableViewAutomaticDimension;
     [self.tableView registerClass:[CommentCell class] forCellReuseIdentifier:kCommentCellID];
+
+    UITapGestureRecognizer *tableTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissKeyboard)];
+    tableTap.cancelsTouchesInView = NO;
+    [self.tableView addGestureRecognizer:tableTap];
 
     // --- Input bar (frame layout inside container) ---
     self.inputBar = [[UIView alloc] init];
@@ -299,27 +308,38 @@ static const CGFloat kInputBarHeight   = 64.0;
 #pragma mark - Keyboard
 
 - (void)keyboardWillShow:(NSNotification *)note {
+    if (!self.parentView) return;
+
     CGRect kbFrame   = [note.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
     CGFloat duration = [note.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    CGFloat kbH      = kbFrame.size.height;
+    UIViewAnimationOptions options = ([note.userInfo[UIKeyboardAnimationCurveUserInfoKey] integerValue] << 16);
+    CGRect kbFrameInParent = [self.parentView convertRect:kbFrame fromView:nil];
     CGFloat screenH  = self.parentView.bounds.size.height;
     CGFloat panelH   = self.containerView.frame.size.height;
     CGFloat panelW   = self.containerView.frame.size.width;
+    CGFloat keyboardOverlap = MAX(0.0, screenH - CGRectGetMinY(kbFrameInParent));
 
-    [UIView animateWithDuration:duration animations:^{
-        self.containerView.frame = CGRectMake(0, screenH - panelH - kbH, panelW, panelH);
-    }];
+    [UIView animateWithDuration:duration delay:0.0 options:options animations:^{
+        self.containerView.frame = CGRectMake(0, screenH - panelH - keyboardOverlap, panelW, panelH);
+    } completion:nil];
 }
 
 - (void)keyboardWillHide:(NSNotification *)note {
+    if (!self.parentView) return;
+
     CGFloat duration = [note.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions options = ([note.userInfo[UIKeyboardAnimationCurveUserInfoKey] integerValue] << 16);
     CGFloat screenH  = self.parentView.bounds.size.height;
     CGFloat panelH   = self.containerView.frame.size.height;
     CGFloat panelW   = self.containerView.frame.size.width;
 
-    [UIView animateWithDuration:duration animations:^{
+    [UIView animateWithDuration:duration delay:0.0 options:options animations:^{
         self.containerView.frame = CGRectMake(0, screenH - panelH, panelW, panelH);
-    }];
+    } completion:nil];
+}
+
+- (void)dismissKeyboard {
+    [self.inputField resignFirstResponder];
 }
 
 #pragma mark - Send
@@ -330,7 +350,7 @@ static const CGFloat kInputBarHeight   = 64.0;
 
     VideoComment *newItem = [[VideoEngagementStore sharedStore] addCommentText:text
                                                                        username:@"Me"
-                                                                     avatarName:@"avatar_placeholder"
+                                                                     avatarName:@"avatar_user_12"
                                                              forVideoIdentifier:self.videoIdentifier];
 
     [self.comments insertObject:newItem atIndex:0];

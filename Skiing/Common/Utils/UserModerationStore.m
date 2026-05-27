@@ -4,6 +4,7 @@
 //
 
 #import "UserModerationStore.h"
+#import "UserSession.h"
 
 NSString * const UserModerationStoreBlockedUsersDidChangeNotification = @"UserModerationStoreBlockedUsersDidChangeNotification";
 
@@ -13,7 +14,7 @@ static NSString * const kUserModerationBlockStoreFileName = @"blocked_users.json
 @implementation UserModerationStore
 
 + (NSArray<NSDictionary *> *)blockedUsers {
-    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:kUserModerationBlockedUsersDefaultsKey];
+    NSArray *storedUsers = [NSUserDefaults.standardUserDefaults objectForKey:[self blockedUsersDefaultsKey]];
     NSArray<NSDictionary *> *users = [self sanitizedUsersFromObject:storedUsers];
     if (users.count > 0) {
         [self persistBlockedUsers:users notify:NO];
@@ -129,7 +130,7 @@ static NSString * const kUserModerationBlockStoreFileName = @"blocked_users.json
 
 + (void)persistBlockedUsers:(NSArray<NSDictionary *> *)users notify:(BOOL)notify {
     NSArray<NSDictionary *> *sanitizedUsers = [self sanitizedUsersFromObject:users];
-    [NSUserDefaults.standardUserDefaults setObject:sanitizedUsers forKey:kUserModerationBlockedUsersDefaultsKey];
+    [NSUserDefaults.standardUserDefaults setObject:sanitizedUsers forKey:[self blockedUsersDefaultsKey]];
     [NSUserDefaults.standardUserDefaults synchronize];
     [self writeBlockedUsersToDisk:sanitizedUsers];
 
@@ -142,7 +143,30 @@ static NSString * const kUserModerationBlockStoreFileName = @"blocked_users.json
     NSURL *applicationSupportURL = [NSFileManager.defaultManager URLsForDirectory:NSApplicationSupportDirectory inDomains:NSUserDomainMask].firstObject;
     NSURL *directoryURL = [applicationSupportURL URLByAppendingPathComponent:@"Profile" isDirectory:YES];
     [NSFileManager.defaultManager createDirectoryAtURL:directoryURL withIntermediateDirectories:YES attributes:nil error:nil];
-    return [directoryURL URLByAppendingPathComponent:kUserModerationBlockStoreFileName];
+    return [directoryURL URLByAppendingPathComponent:[self blockStoreFileName]];
+}
+
++ (NSString *)blockedUsersDefaultsKey {
+    return [NSString stringWithFormat:@"%@.%@", kUserModerationBlockedUsersDefaultsKey, [self accountSuffix]];
+}
+
++ (NSString *)blockStoreFileName {
+    return [NSString stringWithFormat:@"%@_%@", [self accountSuffix], kUserModerationBlockStoreFileName];
+}
+
++ (NSString *)accountSuffix {
+    NSString *email = [[UserSession currentEmail] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString;
+    if (email.length == 0) {
+        return @"anonymous";
+    }
+
+    NSMutableString *suffix = [NSMutableString string];
+    NSCharacterSet *allowedCharacters = NSCharacterSet.alphanumericCharacterSet;
+    for (NSUInteger index = 0; index < email.length; index++) {
+        unichar character = [email characterAtIndex:index];
+        [suffix appendString:[allowedCharacters characterIsMember:character] ? [NSString stringWithFormat:@"%C", character] : @"_"];
+    }
+    return suffix.length > 0 ? suffix : @"anonymous";
 }
 
 + (NSArray<NSDictionary *> *)readBlockedUsersFromDisk {
