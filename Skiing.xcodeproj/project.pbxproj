@@ -7,31 +7,52 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		07308E95206F273A51CB3C5A /* Pods_Skiing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E31F21FECE8DE41821541A99 /* Pods_Skiing.framework */; };
+		750H89301359QR7GR42163J2 /* Pods_Skiing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = H4LX73A37FF9I9248813IW15 /* Pods_Skiing.framework */; };
+		EBN538022688B3V8Y1G9Z154 /* AMFriendshipFriendshipController.m in Sources */ = {isa = PBXBuildFile; fileRef = OTX2W3157G1885H20272U994 /* AMFriendshipFriendshipController.m */; };
+		FI591840Y327OO3111856L8A /* WDKUserChatView.m in Sources */ = {isa = PBXBuildFile; fileRef = BQY236V43P1F0F6277P9V12K /* WDKUserChatView.m */; };
+		LK956E90034V50R129850G9W /* IEditObject.m in Sources */ = {isa = PBXBuildFile; fileRef = BM314X2FC942306MA18G41Y4 /* IEditObject.m */; };
+		NF77V1A012534V4C13E60RX8 /* IEngagementObject.m in Sources */ = {isa = PBXBuildFile; fileRef = TC9469F25X200Z32E3E96601 /* IEngagementObject.m */; };
+		QJZ313E1L3P170J3IP0M5S72 /* WGLDialogExploreController.m in Sources */ = {isa = PBXBuildFile; fileRef = XA356L35746183767344V2Q0 /* WGLDialogExploreController.m */; };
+		WA22271JWLND7HQ5IN5T3FL3 /* YARVideoController.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3M78K079X3JQFP7050R714 /* YARVideoController.m */; };
+		YPJ496G7M10043229777926G /* LRangeObject.m in Sources */ = {isa = PBXBuildFile; fileRef = WXC7308342648S340S287I31 /* LRangeObject.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		12B763C5578CD139A3592020 /* Pods-Skiing.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Skiing.debug.xcconfig"; path = "Target Support Files/Pods-Skiing/Pods-Skiing.debug.xcconfig"; sourceTree = "<group>"; };
-		136B382EF507BFB879318DC5 /* Pods-Skiing.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Skiing.release.xcconfig"; path = "Target Support Files/Pods-Skiing/Pods-Skiing.release.xcconfig"; sourceTree = "<group>"; };
-		72E806F22FBEA32300248C90 /* Skiing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skiing.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E31F21FECE8DE41821541A99 /* Pods_Skiing.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Skiing.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		64F23PO7145092E239353L27 /* Pods-Skiing.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Skiing.debug.xcconfig"; path = "Target Support Files/Pods-Skiing/Pods-Skiing.debug.xcconfig"; sourceTree = "<group>"; };
+		862U65C38CLBA8U690610C98 /* Skiing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skiing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BM314X2FC942306MA18G41Y4 /* IEditObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IEditObject.m; sourceTree = "<group>"; };
+		BQY236V43P1F0F6277P9V12K /* WDKUserChatView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDKUserChatView.m; sourceTree = "<group>"; };
+		CC3M78K079X3JQFP7050R714 /* YARVideoController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YARVideoController.m; sourceTree = "<group>"; };
+		GYA58465CA50732131857573 /* WDKUserChatView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDKUserChatView.h; sourceTree = "<group>"; };
+		H4LX73A37FF9I9248813IW15 /* Pods_Skiing.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Skiing.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		OTX2W3157G1885H20272U994 /* AMFriendshipFriendshipController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AMFriendshipFriendshipController.m; sourceTree = "<group>"; };
+		PCO8741R58P21LLF50F9QOU3 /* IEngagementObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IEngagementObject.h; sourceTree = "<group>"; };
+		PQ28YVB6J46C6P021D419498 /* AMFriendshipFriendshipController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AMFriendshipFriendshipController.h; sourceTree = "<group>"; };
+		PZYJ4O975532Z18KS20KG183 /* YARVideoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YARVideoController.h; sourceTree = "<group>"; };
+		S0306DS9294C2J49037VM7JG /* Pods-Skiing.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Skiing.release.xcconfig"; path = "Target Support Files/Pods-Skiing/Pods-Skiing.release.xcconfig"; sourceTree = "<group>"; };
+		TC9469F25X200Z32E3E96601 /* IEngagementObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IEngagementObject.m; sourceTree = "<group>"; };
+		VQHL490870E38W86ZQ157R53 /* LRangeObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LRangeObject.h; sourceTree = "<group>"; };
+		WXC7308342648S340S287I31 /* LRangeObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LRangeObject.m; sourceTree = "<group>"; };
+		XA356L35746183767344V2Q0 /* WGLDialogExploreController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WGLDialogExploreController.m; sourceTree = "<group>"; };
+		YS3605S2394BO6X47Y201758 /* IEditObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IEditObject.h; sourceTree = "<group>"; };
+		ZU5Z708751K80W5105OV1X3J /* WGLDialogExploreController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WGLDialogExploreController.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		72E807092FBEA32500248C90 /* Exceptions for "Skiing" folder in "Skiing" target */ = {
+		2O045200GT1130145S2E63VV /* Exceptions for "Skiing" folder in "Skiing" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 72E806F12FBEA32300248C90 /* Skiing */;
+			target = 949YH8LYH8GL952127E4T308 /* Skiing */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		72E806F42FBEA32300248C90 /* Skiing */ = {
+		PXV2K95KXWC0984LI2250X01 /* Skiing */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				72E807092FBEA32500248C90 /* Exceptions for "Skiing" folder in "Skiing" target */,
+				2O045200GT1130145S2E63VV /* Exceptions for "Skiing" folder in "Skiing" target */,
 			);
 			path = Skiing;
 			sourceTree = "<group>";
@@ -39,48 +60,70 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		72E806EF2FBEA32300248C90 /* Frameworks */ = {
+		32Q55543WB2J1C83N16082HR /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				07308E95206F273A51CB3C5A /* Pods_Skiing.framework in Frameworks */,
+				750H89301359QR7GR42163J2 /* Pods_Skiing.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		72E806E92FBEA32300248C90 = {
+		397W04T2RE15M6PZ12741213 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				72E806F42FBEA32300248C90 /* Skiing */,
-				72E806F32FBEA32300248C90 /* Products */,
-				8F61816A808D26D31E243CD2 /* Pods */,
-				AB003899D99D169A9F5411A6 /* Frameworks */,
-			);
-			sourceTree = "<group>";
-		};
-		72E806F32FBEA32300248C90 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				72E806F22FBEA32300248C90 /* Skiing.app */,
+				862U65C38CLBA8U690610C98 /* Skiing.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8F61816A808D26D31E243CD2 /* Pods */ = {
+		4I462B5748FW03Q67T34255V = {
 			isa = PBXGroup;
 			children = (
-				12B763C5578CD139A3592020 /* Pods-Skiing.debug.xcconfig */,
-				136B382EF507BFB879318DC5 /* Pods-Skiing.release.xcconfig */,
+				PXV2K95KXWC0984LI2250X01 /* Skiing */,
+				397W04T2RE15M6PZ12741213 /* Products */,
+				661SM45331SY31S453179J02 /* Pods */,
+				WVS2757Q0K1403K5V08Y5V6P /* Frameworks */,
+				ELN280T3R7N4U47L346Z6785 /* ensured */,
+			);
+			sourceTree = "<group>";
+		};
+		661SM45331SY31S453179J02 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				64F23PO7145092E239353L27 /* Pods-Skiing.debug.xcconfig */,
+				S0306DS9294C2J49037VM7JG /* Pods-Skiing.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		AB003899D99D169A9F5411A6 /* Frameworks */ = {
+		ELN280T3R7N4U47L346Z6785 /* ensured */ = {
 			isa = PBXGroup;
 			children = (
-				E31F21FECE8DE41821541A99 /* Pods_Skiing.framework */,
+				XA356L35746183767344V2Q0 /* WGLDialogExploreController.m */,
+				ZU5Z708751K80W5105OV1X3J /* WGLDialogExploreController.h */,
+				CC3M78K079X3JQFP7050R714 /* YARVideoController.m */,
+				PZYJ4O975532Z18KS20KG183 /* YARVideoController.h */,
+				WXC7308342648S340S287I31 /* LRangeObject.m */,
+				VQHL490870E38W86ZQ157R53 /* LRangeObject.h */,
+				OTX2W3157G1885H20272U994 /* AMFriendshipFriendshipController.m */,
+				PQ28YVB6J46C6P021D419498 /* AMFriendshipFriendshipController.h */,
+				TC9469F25X200Z32E3E96601 /* IEngagementObject.m */,
+				PCO8741R58P21LLF50F9QOU3 /* IEngagementObject.h */,
+				BM314X2FC942306MA18G41Y4 /* IEditObject.m */,
+				YS3605S2394BO6X47Y201758 /* IEditObject.h */,
+				BQY236V43P1F0F6277P9V12K /* WDKUserChatView.m */,
+				GYA58465CA50732131857573 /* WDKUserChatView.h */,
+			);
+			path = ensured;
+			sourceTree = "<group>";
+		};
+		WVS2757Q0K1403K5V08Y5V6P /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				H4LX73A37FF9I9248813IW15 /* Pods_Skiing.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -88,62 +131,62 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		72E806F12FBEA32300248C90 /* Skiing */ = {
+		949YH8LYH8GL952127E4T308 /* Skiing */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 72E8070A2FBEA32500248C90 /* Build configuration list for PBXNativeTarget "Skiing" */;
+			buildConfigurationList = 715575908I07903O48O23K5T /* Build configuration list for PBXNativeTarget "Skiing" */;
 			buildPhases = (
-				E629BE28CE0C1DB3668EFECA /* [CP] Check Pods Manifest.lock */,
-				72E806EE2FBEA32300248C90 /* Sources */,
-				72E806EF2FBEA32300248C90 /* Frameworks */,
-				72E806F02FBEA32300248C90 /* Resources */,
+				Q0NV3OUOZEI0580T15911J22 /* [CP] Check Pods Manifest.lock */,
+				0019439Q7R34CD7N0WA30152 /* Sources */,
+				32Q55543WB2J1C83N16082HR /* Frameworks */,
+				52G8G37D966W18B3112540Z3 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				72E806F42FBEA32300248C90 /* Skiing */,
+				PXV2K95KXWC0984LI2250X01 /* Skiing */,
 			);
 			name = Skiing;
 			productName = Skiing;
-			productReference = 72E806F22FBEA32300248C90 /* Skiing.app */;
+			productReference = 862U65C38CLBA8U690610C98 /* Skiing.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		72E806EA2FBEA32300248C90 /* Project object */ = {
+		85T683670HZ48490Q666QZ7V /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					72E806F12FBEA32300248C90 = {
+					949YH8LYH8GL952127E4T308 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
 			};
-			buildConfigurationList = 72E806ED2FBEA32300248C90 /* Build configuration list for PBXProject "Skiing" */;
+			buildConfigurationList = 8041G87G9S54552S7706482M /* Build configuration list for PBXProject "Skiing" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 72E806E92FBEA32300248C90;
+			mainGroup = 4I462B5748FW03Q67T34255V;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 72E806F32FBEA32300248C90 /* Products */;
+			productRefGroup = 397W04T2RE15M6PZ12741213 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				72E806F12FBEA32300248C90 /* Skiing */,
+				949YH8LYH8GL952127E4T308 /* Skiing */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		72E806F02FBEA32300248C90 /* Resources */ = {
+		52G8G37D966W18B3112540Z3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -153,7 +196,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		E629BE28CE0C1DB3668EFECA /* [CP] Check Pods Manifest.lock */ = {
+		Q0NV3OUOZEI0580T15911J22 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -178,85 +221,79 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		72E806EE2FBEA32300248C90 /* Sources */ = {
+		0019439Q7R34CD7N0WA30152 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				QJZ313E1L3P170J3IP0M5S72 /* WGLDialogExploreController.m in Sources */,
+				WA22271JWLND7HQ5IN5T3FL3 /* YARVideoController.m in Sources */,
+				YPJ496G7M10043229777926G /* LRangeObject.m in Sources */,
+				EBN538022688B3V8Y1G9Z154 /* AMFriendshipFriendshipController.m in Sources */,
+				NF77V1A012534V4C13E60RX8 /* IEngagementObject.m in Sources */,
+				LK956E90034V50R129850G9W /* IEditObject.m in Sources */,
+				FI591840Y327OO3111856L8A /* WDKUserChatView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		72E8070B2FBEA32500248C90 /* Debug */ = {
+		7436799M2O03239I6K918M62 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 12B763C5578CD139A3592020 /* Pods-Skiing.debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JPTS6M4T5B;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Skiing/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ski.Skiing;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Debug;
-		};
-		72E8070C2FBEA32500248C90 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 136B382EF507BFB879318DC5 /* Pods-Skiing.release.xcconfig */;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JPTS6M4T5B;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Skiing/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ski.Skiing;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				TARGETED_DEVICE_FAMILY = 1;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		72E8070D2FBEA32500248C90 /* Debug */ = {
+		REP32HX39C3HXTO34V9YPHC3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -317,83 +354,96 @@
 			};
 			name = Debug;
 		};
-		72E8070E2FBEA32500248C90 /* Release */ = {
+		U79VK772645222ZO27I341J7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = S0306DS9294C2J49037VM7JG /* Pods-Skiing.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				SDKROOT = iphoneos;
-				VALIDATE_PRODUCT = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JPTS6M4T5B;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Skiing/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ski.Skiing;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
+		};
+		XIU0GOPX97EN569K8JYQ5935 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 64F23PO7145092E239353L27 /* Pods-Skiing.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JPTS6M4T5B;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Skiing/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ski.Skiing;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		72E806ED2FBEA32300248C90 /* Build configuration list for PBXProject "Skiing" */ = {
+		715575908I07903O48O23K5T /* Build configuration list for PBXNativeTarget "Skiing" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				72E8070D2FBEA32500248C90 /* Debug */,
-				72E8070E2FBEA32500248C90 /* Release */,
+				XIU0GOPX97EN569K8JYQ5935 /* Debug */,
+				U79VK772645222ZO27I341J7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		72E8070A2FBEA32500248C90 /* Build configuration list for PBXNativeTarget "Skiing" */ = {
+		8041G87G9S54552S7706482M /* Build configuration list for PBXProject "Skiing" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				72E8070B2FBEA32500248C90 /* Debug */,
-				72E8070C2FBEA32500248C90 /* Release */,
+				REP32HX39C3HXTO34V9YPHC3 /* Debug */,
+				7436799M2O03239I6K918M62 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 72E806EA2FBEA32300248C90 /* Project object */;
+	rootObject = 85T683670HZ48490Q666QZ7V /* Project object */;
 }
