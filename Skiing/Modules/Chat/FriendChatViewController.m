@@ -245,7 +245,7 @@ static NSString * const kFriendChatMessagesDefaultsPrefix = @"kFriendChatMessage
     self.messageTableView = tableView;
 
     [NSLayoutConstraint activateConstraints:@[
-        [tableView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:135.0],
+        [tableView.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:55.5],
         [tableView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [tableView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
         [tableView.bottomAnchor constraintEqualToAnchor:self.inputBar.topAnchor constant:-82.0],

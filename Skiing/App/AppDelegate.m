@@ -12,10 +12,6 @@
 @end
 
 @implementation AppDelegate
-/**
- 账户：skiing666@gmail.com
- 密码：888888
- */
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.

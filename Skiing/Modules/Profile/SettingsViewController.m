@@ -11,9 +11,9 @@
 #import <SafariServices/SafariServices.h>
 
 static CGFloat const kSettingsSidePadding = 24.0;
-static NSString * const kSettingsPrivacyAgreementURL = @"https://www.example.com/privacy";
-static NSString * const kSettingsUserAgreementURL = @"https://www.example.com/agreement";
-static NSString * const kSettingsCommunityGuidelinesURL = @"https://www.example.com/community-guidelines";
+static NSString * const kSettingsPrivacyAgreementURL = @"https://docs.google.com/document/d/1fooHFbUMTZvIuwk6oo80_VjxJ-Um6tS5Zx6ru8ES1eI/edit?usp=sharing";
+static NSString * const kSettingsUserAgreementURL = @"https://docs.google.com/document/d/1MTbs_7TM8gnLpjKn-LyHf0JtO6-uLI4yXoG0t7274rg/edit?usp=sharing";
+static NSString * const kSettingsCommunityGuidelinesURL = @"https://docs.google.com/document/d/1MDKKXXjC8OW_L20sHy0ALJqTdzygPHMWfm7grmEdnXE/edit?usp=sharing";
 
 @interface SettingsViewController ()
 @property (nonatomic, strong) CAGradientLayer *backgroundGradientLayer;

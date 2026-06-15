@@ -12,15 +12,14 @@
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 static CGFloat const kRechargeSidePadding = 24.0;
-static NSInteger const kRechargeCoinAmount = 99;
-static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99";
 
 @interface RechargeViewController () <SKProductsRequestDelegate, SKPaymentTransactionObserver>
 @property (nonatomic, strong) CAGradientLayer *backgroundGradientLayer;
 @property (nonatomic, strong) UILabel *coinBalanceLabel;
 @property (nonatomic, strong) SKProductsRequest *productsRequest;
-@property (nonatomic, strong) SKProduct *coinProduct;
-@property (nonatomic, copy) NSString *productIdentifier;
+@property (nonatomic, copy) NSArray<NSDictionary<NSString *, id> *> *rechargePackages;
+@property (nonatomic, copy) NSDictionary<NSString *, SKProduct *> *productsByIdentifier;
+@property (nonatomic, copy) NSArray<UIControl *> *packageRowControls;
 @property (nonatomic, copy) NSArray<UIButton *> *priceButtons;
 @property (nonatomic, assign, getter=isPurchasing) BOOL purchasing;
 @end
@@ -32,7 +31,7 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor colorWithRed:0.75 green:0.78 blue:1.0 alpha:1.0];
-    self.productIdentifier = [self configuredProductIdentifier];
+    self.rechargePackages = [self defaultRechargePackages];
     [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
     [NSNotificationCenter.defaultCenter addObserver:self
                                            selector:@selector(updateCoinBalance)
@@ -116,18 +115,27 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
     hintLabel.textAlignment = NSTextAlignmentCenter;
     hintLabel.translatesAutoresizingMaskIntoConstraints = NO;
 
+    UIScrollView *packageScrollView = [[UIScrollView alloc] init];
+    packageScrollView.backgroundColor = UIColor.clearColor;
+    packageScrollView.showsVerticalScrollIndicator = NO;
+    packageScrollView.translatesAutoresizingMaskIntoConstraints = NO;
+
     UIStackView *packageStackView = [[UIStackView alloc] init];
     packageStackView.axis = UILayoutConstraintAxisVertical;
     packageStackView.spacing = 18.0;
     packageStackView.translatesAutoresizingMaskIntoConstraints = NO;
 
-    NSMutableArray<UIButton *> *buttons = [NSMutableArray array];
-    for (NSInteger index = 0; index < 6; index++) {
-        UIView *rowView = [self rechargeRowViewWithPriceButtonHandler:buttons];
+    NSMutableArray<UIControl *> *rowControls = [NSMutableArray array];
+    NSMutableArray<UIButton *> *priceButtons = [NSMutableArray array];
+    for (NSDictionary<NSString *, id> *package in self.rechargePackages) {
+        UIView *rowView = [self rechargeRowViewWithPackage:package
+                                         rowControlHandler:rowControls
+                                        priceButtonHandler:priceButtons];
         [packageStackView addArrangedSubview:rowView];
         [rowView.heightAnchor constraintEqualToConstant:64.0].active = YES;
     }
-    self.priceButtons = buttons;
+    self.packageRowControls = rowControls;
+    self.priceButtons = priceButtons;
 
     [self.view addSubview:backButton];
     [self.view addSubview:titleLabel];
@@ -135,7 +143,8 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
     [coinCardImageView addSubview:coinsTitleLabel];
     [coinCardImageView addSubview:self.coinBalanceLabel];
     [self.view addSubview:hintLabel];
-    [self.view addSubview:packageStackView];
+    [self.view addSubview:packageScrollView];
+    [packageScrollView addSubview:packageStackView];
 
     UILayoutGuide *safeArea = self.view.safeAreaLayoutGuide;
     [NSLayoutConstraint activateConstraints:@[
@@ -149,7 +158,7 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
 
         [coinCardImageView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kRechargeSidePadding],
         [coinCardImageView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-kRechargeSidePadding],
-        [coinCardImageView.topAnchor constraintEqualToAnchor:backButton.bottomAnchor constant:32],
+        [coinCardImageView.topAnchor constraintEqualToAnchor:backButton.bottomAnchor constant:18],
         [coinCardImageView.heightAnchor constraintEqualToConstant:98],
 
         [coinsTitleLabel.leadingAnchor constraintEqualToAnchor:coinCardImageView.leadingAnchor constant:24],
@@ -161,31 +170,42 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
 
         [hintLabel.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kRechargeSidePadding],
         [hintLabel.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-kRechargeSidePadding],
-        [hintLabel.topAnchor constraintEqualToAnchor:coinCardImageView.bottomAnchor constant:16],
+        [hintLabel.topAnchor constraintEqualToAnchor:coinCardImageView.bottomAnchor constant:12],
 
-        [packageStackView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:kRechargeSidePadding],
-        [packageStackView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-kRechargeSidePadding],
-        [packageStackView.topAnchor constraintEqualToAnchor:hintLabel.bottomAnchor constant:28],
+        [packageScrollView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+        [packageScrollView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+        [packageScrollView.topAnchor constraintEqualToAnchor:hintLabel.bottomAnchor constant:18],
+        [packageScrollView.bottomAnchor constraintEqualToAnchor:safeArea.bottomAnchor constant:0],
+
+        [packageStackView.leadingAnchor constraintEqualToAnchor:packageScrollView.contentLayoutGuide.leadingAnchor constant:kRechargeSidePadding],
+        [packageStackView.trailingAnchor constraintEqualToAnchor:packageScrollView.contentLayoutGuide.trailingAnchor constant:-kRechargeSidePadding],
+        [packageStackView.topAnchor constraintEqualToAnchor:packageScrollView.contentLayoutGuide.topAnchor],
+        [packageStackView.bottomAnchor constraintEqualToAnchor:packageScrollView.contentLayoutGuide.bottomAnchor constant:0],
+        [packageStackView.widthAnchor constraintEqualToAnchor:packageScrollView.frameLayoutGuide.widthAnchor constant:-(kRechargeSidePadding * 2.0)],
     ]];
 }
 
-- (UIView *)rechargeRowViewWithPriceButtonHandler:(NSMutableArray<UIButton *> *)buttons {
-    UIView *rowView = [[UIView alloc] init];
+- (UIView *)rechargeRowViewWithPackage:(NSDictionary<NSString *, id> *)package
+                     rowControlHandler:(NSMutableArray<UIControl *> *)rowControls
+                    priceButtonHandler:(NSMutableArray<UIButton *> *)priceButtons {
+    UIControl *rowView = [[UIControl alloc] init];
     rowView.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.38];
     rowView.layer.cornerRadius = 32.0;
+    rowView.tag = rowControls.count;
+    [rowView addTarget:self action:@selector(didTapPurchaseButton:) forControlEvents:UIControlEventTouchUpInside];
 
     UIImageView *coinIconView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"recharge_coin_icon"]];
     coinIconView.contentMode = UIViewContentModeScaleAspectFit;
     coinIconView.translatesAutoresizingMaskIntoConstraints = NO;
 
     UILabel *amountLabel = [[UILabel alloc] init];
-    amountLabel.text = [NSString stringWithFormat:@"x%ld", (long)kRechargeCoinAmount];
+    amountLabel.text = [NSString stringWithFormat:@"x%ld", (long)[self coinsForPackage:package]];
     amountLabel.font = [DesignFonts semibold:18];
     amountLabel.textColor = [UIColor colorWithRed:0.18 green:0.18 blue:0.23 alpha:1.0];
     amountLabel.translatesAutoresizingMaskIntoConstraints = NO;
 
     UILabel *originalPriceLabel = [[UILabel alloc] init];
-    originalPriceLabel.attributedText = [[NSAttributedString alloc] initWithString:@"$19.99"
+    originalPriceLabel.attributedText = [[NSAttributedString alloc] initWithString:[self originalPriceTextForPackage:package]
                                                                         attributes:@{
         NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle),
         NSForegroundColorAttributeName: [UIColor colorWithRed:0.39 green:0.39 blue:0.47 alpha:1.0],
@@ -197,11 +217,12 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
     priceButton.backgroundColor = [UIColor colorWithRed:1.0 green:0.94 blue:0.60 alpha:1.0];
     priceButton.layer.cornerRadius = 22.0;
     priceButton.titleLabel.font = [DesignFonts regular:17];
-    [priceButton setTitle:@"$9.99" forState:UIControlStateNormal];
+    [priceButton setTitle:[self priceTextForPackage:package] forState:UIControlStateNormal];
     [priceButton setTitleColor:[UIColor colorWithRed:0.17 green:0.17 blue:0.22 alpha:1.0] forState:UIControlStateNormal];
     priceButton.translatesAutoresizingMaskIntoConstraints = NO;
-    [priceButton addTarget:self action:@selector(didTapPurchaseButton:) forControlEvents:UIControlEventTouchUpInside];
-    [buttons addObject:priceButton];
+    priceButton.userInteractionEnabled = NO;
+    [rowControls addObject:rowView];
+    [priceButtons addObject:priceButton];
 
     [rowView addSubview:coinIconView];
     [rowView addSubview:amountLabel];
@@ -230,29 +251,85 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
     return rowView;
 }
 
-#pragma mark - StoreKit
+#pragma mark - Package Data
 
-- (NSString *)configuredProductIdentifier {
-    NSString *configuredIdentifier = [NSBundle.mainBundle objectForInfoDictionaryKey:@"RechargeCoins99ProductID"];
-    if (configuredIdentifier.length > 0) {
-        return configuredIdentifier;
-    }
-
-    return kRechargeDefaultProductIdentifier;
+- (NSArray<NSDictionary<NSString *, id> *> *)defaultRechargePackages {
+    return @[
+        @{@"coins": @28999, @"originalPrice": @"$199.99", @"price": @"$99.99", @"productId": @"hirczpmesrpjjkpf"},
+        @{@"coins": @12999, @"originalPrice": @"$109.99", @"price": @"$49.99", @"productId": @"cnzrzykakiadtroz"},
+        @{@"coins": @5699, @"originalPrice": @"$49.99", @"price": @"$19.99", @"productId": @"khqnatwrexbefafp"},
+        @{@"coins": @2299, @"originalPrice": @"$19.99", @"price": @"$9.99", @"productId": @"aotdsvlouotjwnco"},
+        @{@"coins": @699, @"originalPrice": @"$9.99", @"price": @"$4.99", @"productId": @"qprtfqyidjrlsulp"},
+        @{@"coins": @149, @"originalPrice": @"$6.99", @"price": @"$1.99", @"productId": @"lqvfogevvzjdobnx"},
+        @{@"coins": @69, @"originalPrice": @"$4.99", @"price": @"$0.99", @"productId": @"jxznaatqeekrxvsa"},
+    ];
 }
 
+- (NSArray<NSString *> *)productIdentifiers {
+    NSMutableArray<NSString *> *identifiers = [NSMutableArray arrayWithCapacity:self.rechargePackages.count];
+    for (NSDictionary<NSString *, id> *package in self.rechargePackages) {
+        NSString *productIdentifier = [self productIdentifierForPackage:package];
+        if (productIdentifier.length > 0) {
+            [identifiers addObject:productIdentifier];
+        }
+    }
+    return identifiers.copy;
+}
+
+- (NSDictionary<NSString *, id> *)packageForProductIdentifier:(NSString *)productIdentifier {
+    if (productIdentifier.length == 0) {
+        return nil;
+    }
+
+    for (NSDictionary<NSString *, id> *package in self.rechargePackages) {
+        if ([[self productIdentifierForPackage:package] isEqualToString:productIdentifier]) {
+            return package;
+        }
+    }
+    return nil;
+}
+
+- (NSInteger)coinsForPackage:(NSDictionary<NSString *, id> *)package {
+    NSNumber *coins = package[@"coins"];
+    return [coins respondsToSelector:@selector(integerValue)] ? coins.integerValue : 0;
+}
+
+- (NSString *)productIdentifierForPackage:(NSDictionary<NSString *, id> *)package {
+    NSString *productIdentifier = package[@"productId"];
+    return [productIdentifier isKindOfClass:NSString.class] ? productIdentifier : @"";
+}
+
+- (NSString *)priceTextForPackage:(NSDictionary<NSString *, id> *)package {
+    NSString *price = package[@"price"];
+    return [price isKindOfClass:NSString.class] && price.length > 0 ? price : @"$0.99";
+}
+
+- (NSString *)originalPriceTextForPackage:(NSDictionary<NSString *, id> *)package {
+    NSString *originalPrice = package[@"originalPrice"];
+    return [originalPrice isKindOfClass:NSString.class] && originalPrice.length > 0 ? originalPrice : [self priceTextForPackage:package];
+}
+
+#pragma mark - StoreKit
+
 - (void)fetchProducts {
-    self.productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:[NSSet setWithObject:self.productIdentifier]];
+    self.productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:[NSSet setWithArray:[self productIdentifiers]]];
     self.productsRequest.delegate = self;
     [self.productsRequest start];
 }
 
 - (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response {
-    self.coinProduct = response.products.firstObject;
-    NSString *priceText = self.coinProduct ? [self localizedPriceForProduct:self.coinProduct] : @"$9.99";
+    NSMutableDictionary<NSString *, SKProduct *> *productsByIdentifier = [NSMutableDictionary dictionaryWithCapacity:response.products.count];
+    for (SKProduct *product in response.products) {
+        productsByIdentifier[product.productIdentifier] = product;
+    }
+    self.productsByIdentifier = productsByIdentifier.copy;
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        for (UIButton *button in self.priceButtons) {
+        for (NSInteger index = 0; index < self.priceButtons.count && index < self.rechargePackages.count; index++) {
+            UIButton *button = self.priceButtons[index];
+            NSDictionary<NSString *, id> *package = self.rechargePackages[index];
+            SKProduct *product = self.productsByIdentifier[[self productIdentifierForPackage:package]];
+            NSString *priceText = product ? [self localizedPriceForProduct:product] : [self priceTextForPackage:package];
             [button setTitle:priceText forState:UIControlStateNormal];
         }
     });
@@ -291,8 +368,9 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
 }
 
 - (void)completeTransaction:(SKPaymentTransaction *)transaction {
-    if ([transaction.payment.productIdentifier isEqualToString:self.productIdentifier]) {
-        [CoinBalanceStore creditCoins:kRechargeCoinAmount transactionIdentifier:transaction.transactionIdentifier ?: @""];
+    NSDictionary<NSString *, id> *package = [self packageForProductIdentifier:transaction.payment.productIdentifier];
+    if (package) {
+        [CoinBalanceStore creditCoins:[self coinsForPackage:package] transactionIdentifier:transaction.transactionIdentifier ?: @""];
     }
 
     [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
@@ -333,7 +411,7 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (void)didTapPurchaseButton:(UIButton *)button {
+- (void)didTapPurchaseButton:(UIControl *)button {
     if (self.isPurchasing) {
         return;
     }
@@ -343,7 +421,13 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
         return;
     }
 
-    if (!self.coinProduct) {
+    if (button.tag < 0 || button.tag >= self.rechargePackages.count) {
+        return;
+    }
+
+    NSDictionary<NSString *, id> *package = self.rechargePackages[button.tag];
+    SKProduct *product = self.productsByIdentifier[[self productIdentifierForPackage:package]];
+    if (!product) {
         [self showAlertWithTitle:@"Recharge unavailable"
                          message:@"Product information is not ready. Please confirm the App Store product id and try again."];
         return;
@@ -351,7 +435,7 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
 
     self.purchasing = YES;
     [self setPurchaseButtonsEnabled:NO];
-    [[SKPaymentQueue defaultQueue] addPayment:[SKPayment paymentWithProduct:self.coinProduct]];
+    [[SKPaymentQueue defaultQueue] addPayment:[SKPayment paymentWithProduct:product]];
 }
 
 #pragma mark - Helpers
@@ -361,9 +445,9 @@ static NSString * const kRechargeDefaultProductIdentifier = @"ski.Skiing.coins99
 }
 
 - (void)setPurchaseButtonsEnabled:(BOOL)enabled {
-    for (UIButton *button in self.priceButtons) {
-        button.enabled = enabled;
-        button.alpha = enabled ? 1.0 : 0.62;
+    for (UIControl *rowControl in self.packageRowControls) {
+        rowControl.enabled = enabled;
+        rowControl.alpha = enabled ? 1.0 : 0.62;
     }
 }
 

@@ -10,6 +10,7 @@
 #import "SignUpViewController.h"
 #import <SafariServices/SafariServices.h>
 
+static NSString * const kLoginUserAgreementURL = @"https://docs.google.com/document/d/1MTbs_7TM8gnLpjKn-LyHf0JtO6-uLI4yXoG0t7274rg/edit?usp=sharing";
 
 @interface ViewController ()
 @property (nonatomic, strong) UIImageView *backgroundImageView;
@@ -129,7 +130,7 @@
 
 - (void)didTapAgreement:(UITapGestureRecognizer *)gesture {
     if ([self.agreementLabel didTapRange:self.agreementLinkRange inGesture:gesture]) {
-        [self openURL:@"https://www.example.com/agreement"];
+        [self openURL:kLoginUserAgreementURL];
     }
 }
 
@@ -139,7 +140,7 @@
                                                                    message:@"Please read and agree to the User Agreement and Privacy Policy before continuing."
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"View Agreement" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
-        [weakSelf openURL:@"https://www.example.com/agreement"];
+        [weakSelf openURL:kLoginUserAgreementURL];
     }]];
     [alert addAction:[UIAlertAction actionWithTitle:@"Decline" style:UIAlertActionStyleCancel handler:nil]];
     [alert addAction:[UIAlertAction actionWithTitle:@"Agree & Continue" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
