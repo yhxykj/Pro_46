@@ -366,6 +366,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Skiing/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Loktic requires your permission to access the camera and to have video chats with your friends.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Loktic requires your permission to access the voice function. You can have voice video chats with your friends.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Loktic requires your consent to access the photo album. You can select a photo to modify your profile picture and post personal updates.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -401,6 +404,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Skiing/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Loktic requires your permission to access the camera and to have video chats with your friends.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Loktic requires your permission to access the voice function. You can have voice video chats with your friends.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Loktic requires your consent to access the photo album. You can select a photo to modify your profile picture and post personal updates.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
