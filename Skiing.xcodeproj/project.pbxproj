@@ -7,7 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		72FF194D2FE0EDAF00546BBB /* FacebookCore in Frameworks */ = {isa = PBXBuildFile; productRef = 72FF194C2FE0EDAF00546BBB /* FacebookCore */; };
+		72FF194F2FE0EDAF00546BBB /* FacebookLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 72FF194E2FE0EDAF00546BBB /* FacebookLogin */; };
+		72FF19552FE0F8C500546BBB /* AdjustSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 72FF19542FE0F8C500546BBB /* AdjustSdk */; };
 		750H89301359QR7GR42163J2 /* Pods_Skiing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = H4LX73A37FF9I9248813IW15 /* Pods_Skiing.framework */; };
+		7A1F4A912FE2000000000010 /* Messages.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A1F4A902FE2000000000010 /* Messages.framework */; };
 		EBN538022688B3V8Y1G9Z154 /* AMFriendshipFriendshipController.m in Sources */ = {isa = PBXBuildFile; fileRef = OTX2W3157G1885H20272U994 /* AMFriendshipFriendshipController.m */; };
 		FI591840Y327OO3111856L8A /* WDKUserChatView.m in Sources */ = {isa = PBXBuildFile; fileRef = BQY236V43P1F0F6277P9V12K /* WDKUserChatView.m */; };
 		LK956E90034V50R129850G9W /* IEditObject.m in Sources */ = {isa = PBXBuildFile; fileRef = BM314X2FC942306MA18G41Y4 /* IEditObject.m */; };
@@ -19,6 +23,7 @@
 
 /* Begin PBXFileReference section */
 		64F23PO7145092E239353L27 /* Pods-Skiing.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Skiing.debug.xcconfig"; path = "Target Support Files/Pods-Skiing/Pods-Skiing.debug.xcconfig"; sourceTree = "<group>"; };
+		7A1F4A902FE2000000000010 /* Messages.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Messages.framework; path = System/Library/Frameworks/Messages.framework; sourceTree = SDKROOT; };
 		862U65C38CLBA8U690610C98 /* Skiing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skiing.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BM314X2FC942306MA18G41Y4 /* IEditObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IEditObject.m; sourceTree = "<group>"; };
 		BQY236V43P1F0F6277P9V12K /* WDKUserChatView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDKUserChatView.m; sourceTree = "<group>"; };
@@ -65,6 +70,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				750H89301359QR7GR42163J2 /* Pods_Skiing.framework in Frameworks */,
+				72FF194D2FE0EDAF00546BBB /* FacebookCore in Frameworks */,
+				72FF19552FE0F8C500546BBB /* AdjustSdk in Frameworks */,
+				72FF194F2FE0EDAF00546BBB /* FacebookLogin in Frameworks */,
+				7A1F4A912FE2000000000010 /* Messages.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,6 +132,7 @@
 		WVS2757Q0K1403K5V08Y5V6P /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7A1F4A902FE2000000000010 /* Messages.framework */,
 				H4LX73A37FF9I9248813IW15 /* Pods_Skiing.framework */,
 			);
 			name = Frameworks;
@@ -175,6 +185,10 @@
 			);
 			mainGroup = 4I462B5748FW03Q67T34255V;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				72FF194B2FE0EDAF00546BBB /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
+				72FF19532FE0F8C500546BBB /* XCRemoteSwiftPackageReference "ios_sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 397W04T2RE15M6PZ12741213 /* Products */;
 			projectDirPath = "";
@@ -366,9 +380,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Skiing/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Loktic requires your permission to access the camera and to have video chats with your friends.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Loktic requires your permission to access the voice function. You can have voice video chats with your friends.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Loktic requires your consent to access the photo album. You can select a photo to modify your profile picture and post personal updates.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera for in-app web features.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app uses the microphone for in-app web features.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app uses the photo library for in-app web features.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -398,15 +412,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = JPTS6M4T5B;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Skiing/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Loktic;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Loktic requires your permission to access the camera and to have video chats with your friends.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Loktic requires your permission to access the voice function. You can have voice video chats with your friends.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Loktic requires your consent to access the photo album. You can select a photo to modify your profile picture and post personal updates.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera for in-app web features.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app uses the microphone for in-app web features.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app uses the photo library for in-app web features.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -418,7 +433,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.loktic.coolser;
+				PRODUCT_BUNDLE_IDENTIFIER = im.seex.lobo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -452,6 +467,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		72FF194B2FE0EDAF00546BBB /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/facebook/facebook-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 14.1.0;
+			};
+		};
+		72FF19532FE0F8C500546BBB /* XCRemoteSwiftPackageReference "ios_sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/adjust/ios_sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		72FF194C2FE0EDAF00546BBB /* FacebookCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72FF194B2FE0EDAF00546BBB /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookCore;
+		};
+		72FF194E2FE0EDAF00546BBB /* FacebookLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72FF194B2FE0EDAF00546BBB /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */;
+			productName = FacebookLogin;
+		};
+		72FF19542FE0F8C500546BBB /* AdjustSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 72FF19532FE0F8C500546BBB /* XCRemoteSwiftPackageReference "ios_sdk" */;
+			productName = AdjustSdk;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 85T683670HZ48490Q666QZ7V /* Project object */;
 }

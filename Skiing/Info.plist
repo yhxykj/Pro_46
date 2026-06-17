@@ -15,6 +15,12 @@
 			</array>
 		</dict>
 	</array>
+	<key>FacebookAppID</key>
+	<string>1324290353141553</string>
+	<key>FacebookClientToken</key>
+	<string>e8515dc03e2f1456f41ac22d405214a6</string>
+	<key>FacebookDisplayName</key>
+	<string>Loktic</string>
 	<key>RechargeCoins99ProductID</key>
 	<string>ski.Skiing.coins99</string>
 	<key>UIApplicationSceneManifest</key>

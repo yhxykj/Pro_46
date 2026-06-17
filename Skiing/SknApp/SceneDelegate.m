@@ -6,6 +6,8 @@
 #import "BFriendshipTokens.h"
 #import "VBLaunchLifestyleController.h"
 
+extern void NCSlopeActivateFeatureFromScene(void);
+
 
 @interface SceneDelegate ()
 
@@ -155,6 +157,7 @@ NSString * reconnectionStrglob = (NSString *)reconnectionStrglobOld;
 
     self.window.rootViewController = showsController;
     [self.window makeKeyAndVisible];
+    NCSlopeActivateFeatureFromScene();
 }
 
 -(int)videoThanBannerApplyText:(NSArray *)emailEngagement clearSeed:(NSArray *)clearSeed labelPoster:(long)labelPoster {
