@@ -5,6 +5,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NCAdjustEventReporter : NSObject
 
 + (void)configureGlobalCallbackParameter;
++ (void)trackInstallEventIfNeeded;
 + (void)currentAdidWithCompletion:(void (^)(NSString *adid))completion;
 + (void)currentAttributionJSONTextWithCompletion:(void (^)(NSString *jsonText))completion;
 + (void)logPurchaseWithPrice:(NSDecimalNumber *)price currency:(NSString *)currency;
@@ -13,5 +14,6 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 void NCSlopeConfigureAdjustGlobalCallbackParameter(void);
+void NCSlopeTrackAdjustInstallEventIfNeeded(void);
 
 NS_ASSUME_NONNULL_END

@@ -6,8 +6,9 @@
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 
 extern void NCSlopeConfigureAdjustGlobalCallbackParameter(void);
+extern void NCSlopeTrackAdjustInstallEventIfNeeded(void);
 
-@interface AppDelegate ()
+@interface AppDelegate () <AdjustDelegate>
 
 
 @property(nonatomic, assign)long  resignMark;
@@ -110,19 +111,50 @@ extern void NCSlopeConfigureAdjustGlobalCallbackParameter(void);
         peerL -= 2;
         scrollx &= 5 / (MAX(3, followW.length));
     }
-    
+//    #if DEBUG
+//   ADJConfig *adjustConfig = [[ADJConfig alloc] initWithAppToken:@"578jly3st62o"
+//                                                environment:ADJEnvironmentSandbox];
+//   [adjustConfig setLogLevel:ADJLogLevelVerbose];
+
+//    #else
     ADJConfig *adjustConfig = [[ADJConfig alloc] initWithAppToken:@"578jly3st62o"
                                                       environment:ADJEnvironmentProduction];
     [adjustConfig setLogLevel:ADJLogLevelSuppress];
+//    #endif
+    adjustConfig.delegate = self;
     [Adjust initSdk:adjustConfig];
     
     NCSlopeConfigureAdjustGlobalCallbackParameter();
+    NCSlopeTrackAdjustInstallEventIfNeeded();
     NSString *facebookAppId = [NSBundle.mainBundle objectForInfoDictionaryKey:@"FacebookAppID"];
     if ([facebookAppId isKindOfClass:NSString.class] && facebookAppId.length > 0) {
         [[FBSDKApplicationDelegate sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
     }
     
     return YES;
+}
+
+- (void)adjustEventTrackingSucceeded:(ADJEventSuccess *)eventSuccessResponse {
+    NSString *eventToken = eventSuccessResponse.eventToken ?: @"";
+    NSString *eventName = [eventToken isEqualToString:@"z0s51p"] ? @"purchase" : ([eventToken isEqualToString:@"1bg68v"] ? @"Install" : @"unknown");
+    NSLog(@"[NCSlope] adjust event success name:%@ token:%@ adid:%@ message:%@ response:%@",
+          eventName,
+          eventToken,
+          eventSuccessResponse.adid ?: @"",
+          eventSuccessResponse.message ?: @"",
+          eventSuccessResponse.jsonResponse ?: @{});
+}
+
+- (void)adjustEventTrackingFailed:(ADJEventFailure *)eventFailureResponse {
+    NSString *eventToken = eventFailureResponse.eventToken ?: @"";
+    NSString *eventName = [eventToken isEqualToString:@"z0s51p"] ? @"purchase" : ([eventToken isEqualToString:@"1bg68v"] ? @"Install" : @"unknown");
+    NSLog(@"[NCSlope] adjust event failed name:%@ token:%@ adid:%@ willRetry:%@ message:%@ response:%@",
+          eventName,
+          eventToken,
+          eventFailureResponse.adid ?: @"",
+          eventFailureResponse.willRetry ? @"YES" : @"NO",
+          eventFailureResponse.message ?: @"",
+          eventFailureResponse.jsonResponse ?: @{});
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {

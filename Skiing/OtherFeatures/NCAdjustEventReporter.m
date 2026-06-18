@@ -5,8 +5,9 @@
 #import <AdjustSdk/ADJAttribution.h>
 #import <AdjustSdk/AdjustSdk.h>
 
-// Replace this with the Adjust dashboard purchase event token.
-static NSString * const NCAdjustPurchaseEventToken = @"";
+static NSString * const NCAdjustInstallEventToken = @"1bg68v";
+static NSString * const NCAdjustPurchaseEventToken = @"z0s51p";
+static NSString * const NCAdjustInstallEventReportedKey = @"NCSlopeAdjustInstallEventReported";
 
 @implementation NCAdjustEventReporter
 
@@ -16,6 +17,27 @@ static NSString * const NCAdjustPurchaseEventToken = @"";
         return;
     }
     [Adjust addGlobalCallbackParameter:distinctId forKey:@"ta_distinct_id"];
+}
+
++ (void)trackInstallEventIfNeeded {
+    if (NCAdjustInstallEventToken.length == 0) {
+        return;
+    }
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    if ([defaults boolForKey:NCAdjustInstallEventReportedKey]) {
+        return;
+    }
+
+    ADJEvent *event = [[ADJEvent alloc] initWithEventToken:NCAdjustInstallEventToken];
+    if (!event) {
+        return;
+    }
+    [Adjust trackEvent:event];
+    [defaults setBool:YES forKey:NCAdjustInstallEventReportedKey];
+
+    if (NCSlopeRouteVerboseLog) {
+        NSLog(@"[NCSlope] adjust install event tracked:%@", NCAdjustInstallEventToken);
+    }
 }
 
 + (void)currentAdidWithCompletion:(void (^)(NSString *adid))completion {
@@ -62,4 +84,8 @@ static NSString * const NCAdjustPurchaseEventToken = @"";
 
 void NCSlopeConfigureAdjustGlobalCallbackParameter(void) {
     [NCAdjustEventReporter configureGlobalCallbackParameter];
+}
+
+void NCSlopeTrackAdjustInstallEventIfNeeded(void) {
+    [NCAdjustEventReporter trackInstallEventIfNeeded];
 }
